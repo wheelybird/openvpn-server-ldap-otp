@@ -46,13 +46,14 @@ docker run \
            --detach=true \
            -p 1194:1194/udp \
            -e "OVPN_SERVER_CN=myserver.mycompany.com" \
-           -e "LDAP_URI=ldaps://ldap.mycompany.com" \
+           -e "LDAP_URI=ldap://ldap.mycompany.com" \
            -e "LDAP_BASE_DN=dc=mycompany,dc=com" \
            --cap-add=NET_ADMIN \
            reponame/openvpn
 ```
 
 
+* `--cap-add=NET_ADMIN` is necessary; the container needs to create the tunnel device and create iptable rules.
 
 * Extract the client's certificate from the running container:  
 `docker exec -ti openvpn show-client-config`
@@ -60,4 +61,6 @@ docker run \
 * Adding users for Google OTP:  
 `docker exec -ti openvpn add-otp-user <username>` 
 
-You can enable OTP by passing and setting the ENABLE_OTP environment variable to 'true'
+
+The Dockerfile and associated assets are available at:
+https://github.com/wheelybird/openvpn-server-ldap-otp
