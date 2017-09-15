@@ -49,7 +49,7 @@ docker run \
            -e "LDAP_URI=ldap://ldap.mycompany.com" \
            -e "LDAP_BASE_DN=dc=mycompany,dc=com" \
            --cap-add=NET_ADMIN \
-           reponame/openvpn
+           wheelybird/openvpn-server-ldap-otp
 ```
 
 
