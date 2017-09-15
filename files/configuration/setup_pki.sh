@@ -1,5 +1,5 @@
 
-if [ ! -f "$EASYRSA_PKI/.certs_generated" ] || [ $REGENERATE_CERTS == 'true' ]; then
+if [ ! -f "$EASYRSA_PKI/issued/$OVPN_SERVER_CN.key" ] || [ "$REGENERATE_CERTS" == 'true' ]; then
 
  EASYCMD="/opt/easyrsa/easyrsa --vars=/opt/easyrsa/vars"
  $EASYCMD init-pki
@@ -11,6 +11,4 @@ if [ ! -f "$EASYRSA_PKI/.certs_generated" ] || [ $REGENERATE_CERTS == 'true' ]; 
 
  $EASYCMD build-server-full "$OVPN_SERVER_CN" nopass
 
- touch $EASYRSA_PKI/.certs_generated
- 
 fi
