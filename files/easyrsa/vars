@@ -1,0 +1,22 @@
+set_var EASYRSA	"/opt/easyrsa"
+set_var EASYRSA_SSL_CONF "/opt/easyrsa/openssl-1.0.cnf"
+set_var EASYRSA_OPENSSL	"openssl"
+set_var EASYRSA_PKI		"/etc/openvpn/pki"
+
+set_var EASYRSA_BATCH true
+set_var EASYRSA_REQ_CN $OVPN_SERVER_CN
+
+set_var EASYRSA_REQ_COUNTRY	"ZA"
+set_var EASYRSA_REQ_PROVINCE	"Nowhere"
+set_var EASYRSA_REQ_CITY	"Nowhere"
+set_var EASYRSA_REQ_ORG	"Docker OpenVPN"
+set_var EASYRSA_REQ_EMAIL	"null@null.org"
+set_var EASYRSA_REQ_OU		"OpenVPN"
+set_var EASYRSA_KEY_SIZE	$KEY_LENGTH
+
+set_var EASYRSA_CA_EXPIRE	3650
+set_var EASYRSA_CERT_EXPIRE	3650
+
+set_var EASYRSA_CRL_DAYS	180
+set_var EASYRSA_SSL_CONF	"/opt/openssl-1.0.cnf"
+

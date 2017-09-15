@@ -1,0 +1,6 @@
+#%PAM-1.0
+
+auth required pam_google_authenticator.so secret=/etc/openvpn/otp/${USER}.google_authenticator user=root forward_pass
+auth required pam_ldap.so config=/etc/ldap_openvpn.conf use_first_pass
+
+account sufficient pam_permit.so

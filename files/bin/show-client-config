@@ -1,0 +1,73 @@
+#!/bin/bash
+
+source /opt/configuration/set_defaults.sh
+
+if [ ! -f "$PKI_DIR/private/${OVPN_SERVER_CN}.key" ]; then
+ echo  >&2
+ echo "**" >&2
+ echo "The server key wasn't found, which means that something's" >&2
+ echo "gone wrong with generating the certificates.  Try running" >&2
+ echo "the container again with the REGENERATE_CERTS environmental" >&2
+ echo "variable set to 'true'" >&2
+ echo "**" >&2
+ echo  >&2
+ exit 1
+fi
+
+echo "
+client
+dev tun
+auth-user-pass
+persist-key
+persist-tun
+remote-cert-tls server
+key-direction 1
+cipher AES-256-CBC
+auth SHA512
+comp-lzo
+proto tcp
+reneg-sec 0
+"
+
+if [ "${OVPN_DNS_SERVERS}x" != "x" ] ; then
+
+ echo "
+  ##Un-comment these lines in Ubuntu (and other Linux distros)
+  ##in order to set the DNS server:
+
+  #script-security 2
+  #up /etc/openvpn/update-resolv-conf
+  #down /etc/openvpn/update-resolv-conf
+ "
+
+ FS=',' read -r -a nameservers <<< "$OVPN_DNS_SERVERS"
+ 
+ for this_dns_server in $nameservers ; do
+  echo "push \"dhcp-option DNS $this_dns_server\""
+ done
+
+fi
+
+if [ "${OVPN_DNS_SEARCH_DOMAIN}x" != "x" ]; then
+ echo "dhcp-option DOMAIN $OVPN_DNS_SEARCH_DOMAIN"
+fi
+
+
+echo "
+# Set log file verbosity
+verb $OVPN_VERBOSITY
+
+<connection>
+remote $OVPN_SERVER_CN 1194 $OVPN_PROTOCOL
+float
+nobind
+</connection>
+
+<ca>
+$(cat $PKI_DIR/ca.crt)
+</ca>
+<tls-auth>
+$(cat $PKI_DIR/ta.key)
+</tls-auth>
+key-direction 1
+"

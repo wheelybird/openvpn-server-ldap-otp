@@ -1,0 +1,29 @@
+#!/bin/bash
+
+if [ "$DEBUG" == "true" ]; then
+  set -x
+fi
+set -e
+
+CONFIGFILES="/opt/configuration"
+
+source "$CONFIGFILES/set_defaults.sh"
+source "$CONFIGFILES/setup_networking.sh"
+source "$CONFIGFILES/setup_pki.sh"
+source "$CONFIGFILES/setup_ldap.sh"
+source "$CONFIGFILES/setup_otp.sh"
+source "$CONFIGFILES/create_server_config.sh"
+
+echo
+echo "***************"
+echo " Client config "
+echo "***************"
+echo
+/usr/local/bin/show-client-config
+
+echo
+echo "***************"
+echo "Running OpenVPN"
+echo "***************"
+echo
+exec openvpn --config $OPENVPN_DIR/server.conf
