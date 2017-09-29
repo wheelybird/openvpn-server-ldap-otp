@@ -1,5 +1,5 @@
 
-if [ ! -f "$PKI_DIR/issued/$OVPN_SERVER_CN.key" ] || [ "$REGENERATE_CERTS" == 'true' ]; then
+if [ ! -f "$PKI_DIR/issued/$OVPN_SERVER_CN.crt" ] || [ "$REGENERATE_CERTS" == 'true' ]; then
 
  EASYCMD="/opt/easyrsa/easyrsa --vars=/opt/easyrsa/vars"
  $EASYCMD init-pki
