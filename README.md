@@ -2,7 +2,7 @@ OpenVPN container
 =================
 
 This will create an OpenVPN server that uses LDAP for authentication, with optional 2FA provided by Google Auth.
-The container will automatically generate the certificates on the first run (with a 4096 bit key) which means that *the initial run could take several minutes* whilst keys are generated.  The client configuration will be output in the logs.
+The container will automatically generate the certificates on the first run (with a 2048 bit key) which means that *the initial run could take several minutes* whilst keys are generated.  The client configuration will be output in the logs.
 A volume is created for data persistence.
 
 Configuration is via environmental variables.  Here's a list, along with the default value in brackets:
