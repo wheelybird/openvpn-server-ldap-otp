@@ -12,7 +12,7 @@ pam_crypt local
 
 EoLDAP
 
-if [ "${LDAP_TLS}x" == "true" ] ; then
+if [ "${LDAP_TLS}" == "true" ] ; then
  echo "ssl start_tls" >> $LDAP_CONFIG
 fi
 
@@ -21,10 +21,6 @@ if [ "${LDAP_TLS_CA_CERT}x" != "x" ] ; then
  echo $LDAP_TLS_CA_CERT > $OPENVPN_DIR/ldap-ca.crt
  echo "tls_cacertfile ${OPENVPN_DIR}/ldap-ca.crt" >> $LDAP_CONFIG
 
-else
-
- echo "tls_cacertdir /etc/ssl/certs" >> $LDAP_CONFIG
- 
 fi
 
 if [ "${LDAP_FILTER}x" != "x" ] ; then
