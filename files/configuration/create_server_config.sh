@@ -1,5 +1,7 @@
 CONFIG_FILE="${OPENVPN_DIR}/server.conf"
 
+echo "openvpn: creating server config"
+
 cat <<Part01 >$CONFIG_FILE
 # OpenVPN server configuration
 
@@ -30,7 +32,7 @@ if [ "${OVPN_DNS_SEARCH_DOMAIN}x" != "x" ]; then
  echo "dhcp-option DOMAIN $OVPN_DNS_SEARCH_DOMAIN" >> $CONFIG_FILE
 fi
 
-cat /tmp/ovpn_routes.txt >> $CONFIG_FILE
+cat /tmp/routes_config.txt >> $CONFIG_FILE
 
 cat <<Part02 >>$CONFIG_FILE
 

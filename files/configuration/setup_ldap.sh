@@ -1,5 +1,7 @@
 LDAP_CONFIG="/etc/ldap_openvpn.conf"
 
+echo "ldap: creating LDAP configuration"
+
 cat <<EoLDAP >$LDAP_CONFIG
 
 uri $LDAP_URI
