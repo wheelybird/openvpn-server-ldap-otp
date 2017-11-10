@@ -19,35 +19,36 @@ export this_natdevice=`route | grep '^default' | grep -o '[^ ]*$'`
 
 if [ "${OVPN_ROUTES}x" != "x" ] ; then
 
-  FS=',' read -r -a routes <<< "$OVPN_ROUTES"
+  IFS=","
+  read -r -a route_list <<< "$OVPN_ROUTES"
 
   echo "" >/tmp/routes_config.txt
 
-  for this_route in $route_list ; do
-   this_ip=`whatmask $this_route | grep 'IP Entered' | awk '{ print $5 }'`
-   this_cidr=`whatmask $this_route | grep 'CIDR' | awk '{ print $4 }'`
-   echo "$this_ip$this_cidr"
-   OVPN_ROUTES+=("$this_ip$this_cidr")
+  for this_route in ${route_list[@]} ; do
+
    echo "routes: adding route $this_route to server config"
    echo "push route \"$this_route\"" >> /tmp/ovpn_routes.txt
+
+   if [ "$OVPN_NAT" == "true" ]; then
+    IFS=" "
+    this_ip=`whatmask $this_route | grep 'IP Entered' | awk '{ print $5 }'`
+    this_cidr=`whatmask $this_route | grep 'CIDR' | awk '{ print $4 }'`
+    IFS=","
+    to_masquerade="${this_ip}${this_cidr}"
+    echo "iptables: setting masquerade rule for route $to_masquerade via $this_natdevice"
+    iptables -t nat -C POSTROUTING -s "$to_masquerade" -o $this_natdevice -j MASQUERADE || iptables -t nat -A POSTROUTING -s "$to_masquerade" -o $this_natdevice -j MASQUERADE
+   fi
+
   done
 
-
-  if [ "$OVPN_NAT" == "true" ]; then
-
-   for i in "${routes[@]}"; do
-    echo "iptables: setting masquerade rule for route $i via $this_natdevice"
-    iptables -t nat -C POSTROUTING -s "$i" -o $this_natdevice -j MASQUERADE || iptables -t nat -A POSTROUTING -s "$i" -o $this_natdevice -j MASQUERADE
-   done
-
-  fi
+  IFS=" "
 
 else
 
  #If no routes are set then we'll redirect all traffic from the client over the tunnel.
  #This means that we'll set up NAT regardless of whether OVPN_NAT is set to false.
 
- echo "push \"redirect-gateway def1\"" >> /tmp/ovpn_routes.txt
+ echo "push \"redirect-gateway def1\"" >> /tmp/routes_config.txt
 
  echo "iptables: setting masquerade rule for all VPN clients ($this_ovpn_network) via $this_natdevice"
  iptables -t nat -C POSTROUTING -s $this_ovpn_network -o $this_natdevice -j MASQUERADE || iptables -t nat -A POSTROUTING -s $this_ovpn_network -o $this_natdevice -j MASQUERADE
