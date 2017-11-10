@@ -10,8 +10,10 @@ CONFIGFILES="/opt/configuration"
 source "$CONFIGFILES/set_defaults.sh"
 source "$CONFIGFILES/setup_networking.sh"
 source "$CONFIGFILES/setup_pki.sh"
-source "$CONFIGFILES/setup_ldap.sh"
-source "$CONFIGFILES/setup_otp.sh"
+if [ "${USE_CLIENT_CERTIFICATE}" != "true" ] ; then
+ source "$CONFIGFILES/setup_ldap.sh"
+ source "$CONFIGFILES/setup_otp.sh"
+fi 
 source "$CONFIGFILES/create_server_config.sh"
 
 echo

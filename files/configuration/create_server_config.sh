@@ -1,4 +1,3 @@
-
 CONFIG_FILE="${OPENVPN_DIR}/server.conf"
 
 cat <<Part01 >$CONFIG_FILE
@@ -59,6 +58,14 @@ verb $OVPN_VERBOSITY
 # Do not force renegotiation of client
 reneg-sec 0
 
+Part02
+
+if [ "${USE_CLIENT_CERTIFICATE}" != "true" ] ; then
+
+cat <<Part03 >>$CONFIG_FILE
 plugin /usr/lib64/openvpn/plugins/openvpn-plugin-auth-pam.so openvpn
 client-cert-not-required
-Part02
+
+Part03
+
+fi

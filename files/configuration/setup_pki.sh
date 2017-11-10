@@ -1,4 +1,3 @@
-
 if [ ! -f "$PKI_DIR/issued/$OVPN_SERVER_CN.crt" ] || [ "$REGENERATE_CERTS" == 'true' ]; then
 
  EASYCMD="/opt/easyrsa/easyrsa --vars=/opt/easyrsa/vars"
@@ -10,5 +9,9 @@ if [ ! -f "$PKI_DIR/issued/$OVPN_SERVER_CN.crt" ] || [ "$REGENERATE_CERTS" == 't
  openvpn --genkey --secret $PKI_DIR/ta.key
 
  $EASYCMD build-server-full "$OVPN_SERVER_CN" nopass
+
+ if [ "${USE_CLIENT_CERTIFICATE}" == "true" ] ; then
+  $EASYCMD build-client-full client nopass
+ fi
 
 fi

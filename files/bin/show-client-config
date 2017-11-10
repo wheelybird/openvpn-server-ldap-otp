@@ -17,7 +17,6 @@ fi
 echo "
 client
 dev tun
-auth-user-pass
 persist-key
 persist-tun
 remote-cert-tls server
@@ -28,6 +27,10 @@ comp-lzo
 proto tcp
 reneg-sec 0
 "
+
+if [ "${USE_CLIENT_CERTIFICATE}" != "true" ] ; then
+ echo "auth-user-pass"
+fi
 
 if [ "${OVPN_DNS_SERVERS}x" != "x" ] ; then
 
@@ -71,3 +74,25 @@ $(cat $PKI_DIR/ta.key)
 </tls-auth>
 key-direction 1
 "
+
+if [ "${USE_CLIENT_CERTIFICATE}" == "true" ] ; then
+
+ if [ ! -f "$PKI_DIR/private/client.key" ] || [ ! -f "$PKI_DIR/issued/client.crt" ] ; then
+ 
+  echo "USE_CLIENT_CERTIFICATE was set to 'true', but the client"
+  echo "certificates weren't generated.  Exiting..."
+  exit 1
+ else 
+  echo "
+<cert>
+$(cat $PKI_DIR/issued/client.crt)
+</cert>
+<key>
+$(cat $PKI_DIR/private/client.key)
+</key>
+"
+ fi
+
+fi
+
+

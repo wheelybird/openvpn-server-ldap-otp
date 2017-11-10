@@ -28,7 +28,7 @@ if [ "${LDAP_FILTER}x" != "x" ] ; then
 fi
 
 if [ "${LDAP_BIND_USER_DN}x" != "x" ] ; then
- 
+
  echo "binddn $LDAP_BIND_USER_DN" >> $LDAP_CONFIG
  echo "bindpw $LDAP_BIND_USER_PASS" >> $LDAP_CONFIG
 
