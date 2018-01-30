@@ -20,9 +20,9 @@ Part01
 
 if [ "${OVPN_DNS_SERVERS}x" != "x" ] ; then
 
- FS=',' read -r -a nameservers <<< "$OVPN_DNS_SERVERS"
+ nameservers=(${OVPN_DNS_SERVERS//,/ })
  
- for this_dns_server in $nameservers ; do
+ for this_dns_server in "${nameservers[@]} ; do
   echo "push \"dhcp-option DNS $this_dns_server\"" >> $CONFIG_FILE
  done
 
