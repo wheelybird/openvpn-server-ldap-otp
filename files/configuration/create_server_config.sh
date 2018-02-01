@@ -22,7 +22,7 @@ if [ "${OVPN_DNS_SERVERS}x" != "x" ] ; then
 
  nameservers=(${OVPN_DNS_SERVERS//,/ })
  
- for this_dns_server in "${nameservers[@]} ; do
+ for this_dns_server in "${nameservers[@]}" ; do
   echo "push \"dhcp-option DNS $this_dns_server\"" >> $CONFIG_FILE
  done
 
@@ -42,7 +42,7 @@ duplicate-cn
 keepalive 10 120
 
 tls-auth $PKI_DIR/ta.key 0 
-tls-cipher TLS-DHE-RSA-WITH-AES-256-CBC-SHA
+tls-cipher $OVPN_TLS_CIPHERS
 auth SHA512
 cipher AES-256-CBC
 
