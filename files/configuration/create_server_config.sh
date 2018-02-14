@@ -29,7 +29,7 @@ if [ "${OVPN_DNS_SERVERS}x" != "x" ] ; then
 fi
 
 if [ "${OVPN_DNS_SEARCH_DOMAIN}x" != "x" ]; then
- echo "dhcp-option DOMAIN $OVPN_DNS_SEARCH_DOMAIN" >> $CONFIG_FILE
+ echo "push \"dhcp-option DOMAIN $OVPN_DNS_SEARCH_DOMAIN\"" >> $CONFIG_FILE
 fi
 
 cat /tmp/routes_config.txt >> $CONFIG_FILE

@@ -45,16 +45,17 @@ if [ "${OVPN_DNS_SERVERS}x" != "x" ] ; then
 
  FS=',' read -r -a nameservers <<< "$OVPN_DNS_SERVERS"
  
- for this_dns_server in $nameservers ; do
-  echo "push \"dhcp-option DNS $this_dns_server\""
- done
+ #for this_dns_server in $nameservers ; do
+ # echo "push \"dhcp-option DNS $this_dns_server\""
+ #done
 
 fi
 
-if [ "${OVPN_DNS_SEARCH_DOMAIN}x" != "x" ]; then
- echo "dhcp-option DOMAIN $OVPN_DNS_SEARCH_DOMAIN"
-fi
+#if [ "${OVPN_DNS_SEARCH_DOMAIN}x" != "x" ]; then
+# echo "dhcp-option DOMAIN $OVPN_DNS_SEARCH_DOMAIN"
+#fi
 
+echo "register-dns" # This can force some windows clients to load the DNS configuration
 
 echo "
 # Set log file verbosity
