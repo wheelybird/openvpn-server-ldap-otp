@@ -38,3 +38,5 @@ if [ "${ENABLE_OTP}x" == "x" ];                  then export ENABLE_OTP="false";
 if [ "${LDAP_SEARCH_ATTRIBUTE}x" == "x" ];       then export LDAP_SEARCH_ATTRIBUTE="uid";                         fi
 if [ "${LDAP_TLS}x" == "x" ];                    then export LDAP_TLS="false";                                    fi
 if [ "${KEY_LENGTH}x" == "x" ];                  then export KEY_LENGTH="2048";                                   fi
+if [ "${FAIL2BAN_ENABLED}x" == "x" ];            then export FAIL2BAN_ENABLED="false";                            fi
+if [ "${FAIL2BAN_MAXRETRIES}x" == "x" ];         then export FAIL2BAN_MAXRETRIES="3";                             fi
