@@ -40,7 +40,8 @@ Configuration is via environmental variables.  Here's a list, along with the def
  * `KEY_LENGTH` (2048):  The length of the server key in bits.  Higher is more secure, but will take longer to generate.  e.g. `4096`
  * `DEBUG` (false):  Add debugging information to the logs.
  * `ENABLE_OTP` (false):  Activate two factor authentication using Google Auth.  See _Using OTP_ below for more information.
-
+ * `FAIL2BAN_ENABLED` (false):  Enables fail2ban protection against brute force attacks.
+ * `FAIL2BAN_MAXRETRIES` (3):  The number of attempts that fail2ban allows before banning an ip address
 
 #### Launching the OpenVPN daemon container:  
 ```
@@ -80,3 +81,7 @@ This is useful for testing out your VPN server and isn't intended as an especial
 
 The Dockerfile and associated assets are available at:
 https://github.com/wheelybird/openvpn-server-ldap-otp
+
+#### Fail2ban Administration
+
+You can ban/unban an ip address using the `fail2ban-client`. Just run `docker exec openvpn fail2ban-client set openvpn <banip|unbanip> <IPV4 Address>` to modify the ban status for a particular IP. You can view the ban logs by running `docker exec openvpn tail -50 /var/log/fail2ban.log`.
