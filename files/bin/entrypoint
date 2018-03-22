@@ -15,6 +15,7 @@ if [ "${USE_CLIENT_CERTIFICATE}" != "true" ] ; then
  source "$CONFIGFILES/setup_otp.sh"
 fi 
 source "$CONFIGFILES/create_server_config.sh"
+source "$CONFIGFILES/setup_fail2ban.sh"
 
 echo
 echo "***************"

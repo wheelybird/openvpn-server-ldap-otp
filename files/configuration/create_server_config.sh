@@ -29,7 +29,7 @@ if [ "${OVPN_DNS_SERVERS}x" != "x" ] ; then
 fi
 
 if [ "${OVPN_DNS_SEARCH_DOMAIN}x" != "x" ]; then
- echo "dhcp-option DOMAIN $OVPN_DNS_SEARCH_DOMAIN" >> $CONFIG_FILE
+ echo "push \"dhcp-option DOMAIN $OVPN_DNS_SEARCH_DOMAIN\"" >> $CONFIG_FILE
 fi
 
 cat /tmp/routes_config.txt >> $CONFIG_FILE
@@ -55,6 +55,7 @@ persist-key
 persist-tun
 
 status $OPENVPN_DIR/openvpn-status.log
+log-append /var/log/openvpn.log
 verb $OVPN_VERBOSITY
 
 # Do not force renegotiation of client
@@ -66,7 +67,7 @@ if [ "${USE_CLIENT_CERTIFICATE}" != "true" ] ; then
 
 cat <<Part03 >>$CONFIG_FILE
 plugin /usr/lib64/openvpn/plugins/openvpn-plugin-auth-pam.so openvpn
-client-cert-not-required
+verify-client-cert optional
 
 Part03
 
