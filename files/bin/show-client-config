@@ -55,7 +55,10 @@ fi
 # echo "dhcp-option DOMAIN $OVPN_DNS_SEARCH_DOMAIN"
 #fi
 
-echo "register-dns" # This can force some windows clients to load the DNS configuration
+# Windows: this can force some windows clients to load the DNS configuration
+if [ "${OVPN_REGISTER_DNS}" == "true" ]; then 
+ echo "register-dns"
+fi 
 
 echo "
 # Set log file verbosity
