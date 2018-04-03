@@ -40,7 +40,7 @@ Configuration is via environmental variables.  Here's a list, along with the def
  * `KEY_LENGTH` (2048):  The length of the server key in bits.  Higher is more secure, but will take longer to generate.  e.g. `4096`
  * `DEBUG` (false):  Add debugging information to the logs.
  * `ENABLE_OTP` (false):  Activate two factor authentication using Google Auth.  See _Using OTP_ below for more information.
- * `FAIL2BAN_ENABLED` (false):  To to 'true to enable the fail2ban daemon (protection against brute force attacks).
+ * `FAIL2BAN_ENABLED` (false):  Set to `true` to enable the fail2ban daemon (protection against brute force attacks).
  * `FAIL2BAN_MAXRETRIES` (3):  The number of attempts that fail2ban allows before banning an ip address
 
 #### Launching the OpenVPN daemon container:  
