@@ -29,16 +29,16 @@ enabled  = $FAIL2BAN_ENABLED
 port     = 1194
 protocol = udp
 filter   = openvpn
-logpath  = /var/log/openvpn.log
+logpath  = $LOG_FILE
 maxretry = $FAIL2BAN_MAXRETRIES
 EOF
 
 cat <<EOF >> /etc/fail2ban/fail2ban.local
 [Definition]
-logtarget = /var/log/fail2ban.log
+logtarget = /proc/1/fd/1
 EOF
 
-touch /var/log/openvpn.log
+
 service fail2ban start
 
 

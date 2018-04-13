@@ -55,7 +55,7 @@ persist-key
 persist-tun
 
 status $OPENVPN_DIR/openvpn-status.log
-log-append /var/log/openvpn.log
+log-append $LOG_FILE
 verb $OVPN_VERBOSITY
 
 # Do not force renegotiation of client

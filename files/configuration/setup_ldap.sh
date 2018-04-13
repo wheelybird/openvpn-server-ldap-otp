@@ -29,6 +29,10 @@ if [ "${LDAP_FILTER}x" != "x" ] ; then
  echo "pam_filter $LDAP_FILTER" >> $LDAP_CONFIG
 fi
 
+if [ "${LDAP_LOGIN_ATTRIBUTE}x" != "x" ] ; then
+ echo "pam_login_attribute $LDAP_LOGIN_ATTRIBUTE" >> $LDAP_CONFIG
+fi
+
 if [ "${LDAP_BIND_USER_DN}x" != "x" ] ; then
 
  echo "binddn $LDAP_BIND_USER_DN" >> $LDAP_CONFIG

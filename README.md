@@ -23,7 +23,7 @@ Configuration is via environmental variables.  Here's a list, along with the def
  * `LDAP_BIND_USER_DN` (_undefined_):  If your LDAP server doesn't allow anonymous binds, use this to specify a user DN to use for lookups.
  * `LDAP_BIND_USER_PASS` (_undefined_): The password for the bind user.
  * `LDAP_FILTER` (_undefined_): A filter to apply to LDAP lookups.  This allows you to limit the lookup results and thereby who will be authenticated.  e.g. `memberOf=cn=staff,cn=groups,cn=accounts,dc=example,dc=org`
- * `LDAP_SEARCH_ATTRIBUTE` (uid):  The LDAP attribute used for the authentication lookup, i.e. which attribute is matched to the username when you log into the OpenVPN server.
+ * `LDAP_LOGIN_ATTRIBUTE` (uid):  The LDAP attribute used for the authentication lookup, i.e. which attribute is matched to the username when you log into the OpenVPN server.
  * `LDAP_TLS` (false):  Set to 'true' to enable a TLS connection to the LDAP server.
  * `LDAP_TLS_CA_CERT` (_undefined_): The contents of the CA certificate file for the LDAP server.  You'll need this to enable TLS if using self-signed certificates.
 
@@ -40,9 +40,10 @@ Configuration is via environmental variables.  Here's a list, along with the def
  * `REGENERATE_CERTS` (false):  Force the recreation the certificates.
  * `KEY_LENGTH` (2048):  The length of the server key in bits.  Higher is more secure, but will take longer to generate.  e.g. `4096`
  * `DEBUG` (false):  Add debugging information to the logs.
+ * `LOG_TO_STDOUT` (true):  Sends *OpenVPN* logs to stdout so that logs can be examined via `docker log`.  If `FAIL2BAN_ENABLED` is `true` then this is set to `false` because *fail2ban* needs to be able to parse the *OpenVPN* logs. If *false*, logs are written to `/etc/openvpn/logs/openvpn.log` to allow access to the logs from the host filesystem.
  * `ENABLE_OTP` (false):  Activate two factor authentication using Google Auth.  See _Using OTP_ below for more information.
  
- * `FAIL2BAN_ENABLED` (false):  Set to `true` to enable the fail2ban daemon (protection against brute force attacks).
+ * `FAIL2BAN_ENABLED` (false):  Set to `true` to enable the fail2ban daemon (protection against brute force attacks). This will also set `LOG_TO_STDOUT` to `false`.
  * `FAIL2BAN_MAXRETRIES` (3):  The number of attempts that fail2ban allows before banning an ip address.
 
 #### Launching the OpenVPN daemon container:  
