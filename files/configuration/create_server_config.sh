@@ -68,6 +68,7 @@ if [ "${USE_CLIENT_CERTIFICATE}" != "true" ] ; then
 cat <<Part03 >>$CONFIG_FILE
 plugin /usr/lib64/openvpn/plugins/openvpn-plugin-auth-pam.so openvpn
 verify-client-cert optional
+username-as-common-name
 
 Part03
 
