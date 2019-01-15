@@ -20,7 +20,7 @@ fi
 
 if [ "${LDAP_TLS_CA_CERT}x" != "x" ] ; then
 
- echo $LDAP_TLS_CA_CERT > $OPENVPN_DIR/ldap-ca.crt
+ echo "$LDAP_TLS_CA_CERT" > $OPENVPN_DIR/ldap-ca.crt
  echo "tls_cacertfile ${OPENVPN_DIR}/ldap-ca.crt" >> $LDAP_CONFIG
 
 fi
