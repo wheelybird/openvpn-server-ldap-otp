@@ -43,6 +43,7 @@ if [ "${LOG_TO_STDOUT}x" == "x" ];               then export LOG_TO_STDOUT="true
 if [ "${ENABLE_OTP}x" == "x" ];                  then export ENABLE_OTP="false";                                  fi
 if [ "${LDAP_LOGIN_ATTRIBUTE}x" == "x" ];        then export LDAP_LOGIN_ATTRIBUTE="uid";                          fi
 if [ "${LDAP_TLS}x" == "x" ];                    then export LDAP_TLS="false";                                    fi
+if [ "${LDAP_TLS_VALIDATE_CERT}x" == "x" ];      then export LDAP_TLS_VALIDATE_CERT="true";                       fi
 if [ "${KEY_LENGTH}x" == "x" ];                  then export KEY_LENGTH="2048";                                   fi
 if [ "${FAIL2BAN_ENABLED}x" == "x" ];            then export FAIL2BAN_ENABLED="false";                            fi
 if [ "${FAIL2BAN_MAXRETRIES}x" == "x" ];         then export FAIL2BAN_MAXRETRIES="3";                             fi

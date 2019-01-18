@@ -18,6 +18,10 @@ if [ "${LDAP_TLS}" == "true" ] ; then
  echo "ssl start_tls" >> $LDAP_CONFIG
 fi
 
+if [ "${LDAP_TLS_VALIDATE_CERT}" == "false" ] ; then
+ echo "tls_checkpeer no" >> $LDAP_CONFIG
+fi
+
 if [ "${LDAP_TLS_CA_CERT}x" != "x" ] ; then
 
  echo "$LDAP_TLS_CA_CERT" > $OPENVPN_DIR/ldap-ca.crt
