@@ -1,5 +1,5 @@
 #%PAM-1.0
 
-auth required pam_ldap.so config=/etc/ldap_openvpn.conf
+auth required pam_ldap.so
 
 account sufficient pam_permit.so
