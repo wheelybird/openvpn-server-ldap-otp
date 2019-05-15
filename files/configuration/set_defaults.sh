@@ -31,7 +31,9 @@ if [ ! -d "$LOG_DIR" ]; then
  mkdir -p $LOG_DIR
 fi
 
-if [ "${OVPN_TLS_CIPHERS}x" == "x" ];            then export OVPN_TLS_CIPHERS="TLS-DHE-RSA-WITH-AES-256-CBC-SHA"; fi
+default_tls_ciphers="TLS-DHE-RSA-WITH-AES-256-CBC-SHA:TLS-DHE-RSA-WITH-AES-256-CBC-SHA256:TLS-DHE-RSA-WITH-AES-256-CBC-SHA256:TLS-DHE-RSA-WITH-CAMELLIA-256-CBC-SHA:TLS-DHE-RSA-WITH-AES-128-CBC-SHA"
+
+if [ "${OVPN_TLS_CIPHERS}x" == "x" ];            then export OVPN_TLS_CIPHERS=$default_tls_ciphers;               fi
 if [ "${OVPN_PROTOCOL}x" == "x" ];               then export OVPN_PROTOCOL="udp";                                 fi
 if [ "${OVPN_NETWORK}x" == "x" ];                then export OVPN_NETWORK="10.50.50.0 255.255.255.0";             fi
 if [ "${OVPN_VERBOSITY}x" == "x" ];              then export OVPN_VERBOSITY="3";                                  fi

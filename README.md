@@ -18,7 +18,7 @@ Configuration is via environmental variables.  Here's a list, along with the def
 
 #### Optional settings:
 
- * `USE_CLIENT_CERTIFICATE` (_false_): If this is set to `true` then the container will generate a client key and certificate and won't use LDAP (or OTP) for authentication.  See _Using a client certificate_ below for more information.
+ * `USE_CLIENT_CERTIFICATE` (false): If this is set to `true` then the container will generate a client key and certificate and won't use LDAP (or OTP) for authentication.  See _Using a client certificate_ below for more information.
  
  * `LDAP_BIND_USER_DN` (_undefined_):  If your LDAP server doesn't allow anonymous binds, use this to specify a user DN to use for lookups.
  * `LDAP_BIND_USER_PASS` (_undefined_): The password for the bind user.
@@ -28,7 +28,7 @@ Configuration is via environmental variables.  Here's a list, along with the def
  * `LDAP_TLS_VALIDATE_CERT` (true):  Set to 'true' to ensure the TLS certificate can be validated.  'false' will ignore certificate issues - you might need this if you're using a self-signed certificate and not passing in the CA certificate.
  * `LDAP_TLS_CA_CERT` (_undefined_): The contents of the CA certificate file for the LDAP server.  You'll need this to enable TLS if using self-signed certificates.
 
- * `OVPN_TLS_CIPHERS` (TLS-DHE-RSA-WITH-AES-256-CBC-SHA): Determines which ciphers will be set for `tls-config` in the openvpn config file.
+ * `OVPN_TLS_CIPHERS` (TLS-DHE-RSA-WITH-AES-256-CBC-SHA:TLS-DHE-RSA-WITH-AES-256-CBC-SHA256:TLS-DHE-RSA-WITH-AES-256-CBC-SHA256:TLS-DHE-RSA-WITH-CAMELLIA-256-CBC-SHA:TLS-DHE-RSA-WITH-AES-128-CBC-SHA): Determines which ciphers will be set for `tls-cipher` in the openvpn config file.
  * `OVPN_PROTOCOL` (udp):  The protocol OpenVPN uses.  Either `udp` or `tcp`.
  * `OVPN_NETWORK` (10.50.50.0 255.255.255.0):  The network that will be used the the VPN in `network_address netmask` format.
  * `OVPN_ROUTES` (_undefined_):  A comma-separated list of routes that OpenVPN will push to the client, in `network_address netmask` format.  e.g. `172.16.10.0 255.255.255.0,172.17.20.0 255.255.255.0`.  If NAT isn't enabled then you'll need to ensure that destinations on the network have the return route set for the OpenVPN network.  The default is to pass all traffic through the VPN tunnel (which will also enable NAT).
@@ -83,9 +83,8 @@ This is useful for testing out your VPN server and isn't intended as an especial
 
 #### Git repository
 
-The Dockerfile and associated assets are available at:
-https://github.com/wheelybird/openvpn-server-ldap-otp
+The Dockerfile and associated assets are available at https://github.com/wheelybird/openvpn-server-ldap-otp
 
 #### Fail2ban Administration
 
-You can ban/unban an ip address using the `fail2ban-client`. Just run `docker exec openvpn fail2ban-client set openvpn <banip|unbanip> <IPV4 Address>` to modify the ban status for a particular IP. You can view the ban logs by running `docker exec openvpn tail -50 /var/log/fail2ban.log`.
+You can ban/unban an ip address using the `fail2ban-client` command within the running container. For example, running `docker exec openvpn fail2ban-client set openvpn <banip|unbanip> <IPV4 Address>`. You can view the ban logs by running `docker exec openvpn tail -50 /var/log/fail2ban.log`.

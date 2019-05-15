@@ -27,7 +27,7 @@ cat <<EOF >> /etc/fail2ban/jail.d/openvpn.conf
 [openvpn]
 enabled  = $FAIL2BAN_ENABLED
 port     = 1194
-protocol = udp
+protocol = $OVPN_PROTOCOL
 filter   = openvpn
 logpath  = $LOG_FILE
 maxretry = $FAIL2BAN_MAXRETRIES
@@ -40,5 +40,3 @@ EOF
 
 
 service fail2ban start
-
-
