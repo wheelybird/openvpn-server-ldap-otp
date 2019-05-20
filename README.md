@@ -66,6 +66,8 @@ docker run \
 * Extract the client configuration (along with embedded certificates) from the running container:
 `docker exec -ti openvpn show-client-config`
 
+* An image based on Centos 7 is available via `wheelybird/openvpn-ldap-otp:centos7` thanks to GitHub user *benohara*.
+
 
 #### Using OTP
 
