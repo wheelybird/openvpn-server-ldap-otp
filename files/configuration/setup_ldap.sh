@@ -1,8 +1,11 @@
-LDAP_CONFIG="/etc/ldap_openvpn.conf"
+LDAP_CONFIG="/etc/nslcd.conf"
 
 echo "ldap: creating LDAP configuration"
 
 cat <<EoLDAP >$LDAP_CONFIG
+
+uid nslcd
+gid ldap
 
 uri $LDAP_URI
 
@@ -10,7 +13,6 @@ base $LDAP_BASE_DN
 scope sub
 
 ldap_version 3
-pam_crypt local
 
 EoLDAP
 
@@ -19,7 +21,7 @@ if [ "${LDAP_TLS}" == "true" ] ; then
 fi
 
 if [ "${LDAP_TLS_VALIDATE_CERT}" == "false" ] ; then
- echo "tls_checkpeer no" >> $LDAP_CONFIG
+ echo "tls_reqcert no" >> $LDAP_CONFIG
 fi
 
 if [ "${LDAP_TLS_CA_CERT}x" != "x" ] ; then
@@ -30,11 +32,11 @@ if [ "${LDAP_TLS_CA_CERT}x" != "x" ] ; then
 fi
 
 if [ "${LDAP_FILTER}x" != "x" ] ; then
- echo "pam_filter $LDAP_FILTER" >> $LDAP_CONFIG
+ echo "filter passwd $LDAP_FILTER" >> $LDAP_CONFIG
 fi
 
 if [ "${LDAP_LOGIN_ATTRIBUTE}x" != "x" ] ; then
- echo "pam_login_attribute $LDAP_LOGIN_ATTRIBUTE" >> $LDAP_CONFIG
+ echo "map    passwd uid              $LDAP_LOGIN_ATTRIBUTE" >> $LDAP_CONFIG
 fi
 
 if [ "${LDAP_BIND_USER_DN}x" != "x" ] ; then
