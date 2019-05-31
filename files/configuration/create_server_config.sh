@@ -86,7 +86,7 @@ if [ "${OVPN_MANAGEMENT_ENABLE}x" == "true" ]; then
    echo "$OVPN_MANAGEMENT_PASSWORD" > $PW_FILE
    echo "management 0.0.0.0 5555 $PW_FILE" >> $CONFIG_FILE
   else
-   echo "openvpn: warning: management password is not set, and authentication is enabled"
+   echo "openvpn: warning: management password is not set, but authentication is enabled. management interface will not be enabled"
   fi
  fi
 fi
