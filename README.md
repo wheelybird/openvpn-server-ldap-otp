@@ -38,6 +38,10 @@ Configuration is via environmental variables.  Here's a list, along with the def
  * `OVPN_REGISTER_DNS` (false): Include `register-dns` in the client config, which is a Windows client option that can force some clients to load the DNS configuration.
  * `OVPN_VERBOSITY` (4):  The verbosity of OpenVPN's logs.
 
+ * `OVPN_MANAGEMENT_ENABLE` (false): Enable the TCP management interface on port 5555.
+ * `OVPN_MANAGEMENT_NOAUTH` (false): Allow access to the management interface without any authentication. Note that this option should only be enabled if the management port is not accessible to the internet.
+ * `OVPN_MANAGEMENT_PASSWORD` (_undefined_): The password for the management interface. This has to be set if the interface is enabled and the `OVPN_MANAGEMENT_NOAUTH` is not set. Note that this passphrase is stored in clear-text internally.
+
  * `REGENERATE_CERTS` (false):  Force the recreation the certificates.
  * `KEY_LENGTH` (2048):  The length of the server key in bits.  Higher is more secure, but will take longer to generate.  e.g. `4096`
  * `DEBUG` (false):  Add debugging information to the logs.
