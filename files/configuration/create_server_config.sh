@@ -85,6 +85,7 @@ if [ "${OVPN_MANAGEMENT_ENABLE}" == "true" ]; then
   if [ "${OVPN_MANAGEMENT_PASSWORD}x" != "x" ]; then
    PW_FILE="${OPENVPN_DIR}/management_pw"
    echo "$OVPN_MANAGEMENT_PASSWORD" > $PW_FILE
+   chmod 600 $PW_FILE
    echo "management 0.0.0.0 5555 $PW_FILE" >> $CONFIG_FILE
    echo "openvpn: management interface enabled with authentication"
   else
