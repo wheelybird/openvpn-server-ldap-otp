@@ -73,3 +73,20 @@ username-as-common-name
 Part03
 
 fi
+
+if [ "${OVPN_MANAGEMENT_ENABLE}x" == "true" ]; then
+ if [ "${OVPN_MANAGEMENT_NOAUTH}x" == "true" ]; then
+  if [ "${OVPN_MANAGEMENT_PASSWORD}x" != "x" ]; then
+   echo "openvpn: warning: management password is set, but authentication is disabled"
+  fi
+  echo "management 0.0.0.0 5555" >> $CONFIG_FILE
+ else
+  if [ "${OVPN_MANAGEMENT_PASSWORD}x" != "x" ]; then
+   PW_FILE="${OPENVPN_DIR}/management_pw"
+   echo "$OVPN_MANAGEMENT_PASSWORD" > $PW_FILE
+   echo "management 0.0.0.0 5555 $PW_FILE" >> $CONFIG_FILE
+  else
+   echo "openvpn: warning: management password is not set, and authentication is enabled"
+  fi
+ fi
+fi
