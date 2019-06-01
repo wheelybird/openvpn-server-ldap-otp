@@ -26,8 +26,11 @@ auth SHA512
 comp-lzo
 proto tcp
 reneg-sec 0
-redirect-gateway def1
 "
+
+if [ "${OVPN_ROUTES}x" == "x" ] ; then
+ echo "redirect-gateway def1"
+fi
 
 if [ "${USE_CLIENT_CERTIFICATE}" != "true" ] ; then
  echo "auth-user-pass"
