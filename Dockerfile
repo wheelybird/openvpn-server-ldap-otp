@@ -6,6 +6,7 @@ RUN yum -y install epel-release iptables bash nss-pam-ldapd ca-certificates
 RUN yum -y install openvpn whatmask fail2ban
 
 EXPOSE 1194/udp
+EXPOSE 5555/tcp
 
 ADD ./files/bin /usr/local/bin
 RUN chmod a+x /usr/local/bin/*
