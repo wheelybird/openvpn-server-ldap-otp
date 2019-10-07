@@ -31,6 +31,10 @@ if [ "${OVPN_ENABLE_COMPRESSION}" == "true" ]; then
  echo "comp-lzo"
 fi
 
+if [ "${OVPN_ROUTES}x" == "x" ] ; then
+ echo "redirect-gateway def1"
+fi
+
 if [ "${USE_CLIENT_CERTIFICATE}" != "true" ] ; then
  echo "auth-user-pass"
 fi

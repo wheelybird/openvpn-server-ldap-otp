@@ -8,6 +8,7 @@ RUN yum -y install openvpn whatmask fail2ban google-authenticator ipcalc
 RUN yum -y upgrade
 
 EXPOSE 1194/udp
+EXPOSE 5555/tcp
 
 ADD ./files/bin /usr/local/bin
 RUN chmod a+x /usr/local/bin/*

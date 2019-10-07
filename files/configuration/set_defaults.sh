@@ -41,6 +41,8 @@ if [ "${OVPN_NAT}x" == "x" ];                    then export OVPN_NAT="true";   
 if [ "${OVPN_REGISTER_DNS}x" == "x" ];           then export OVPN_REGISTER_DNS="false";                           fi
 if [ "${OVPN_ENABLE_COMPRESSION}x" == "x" ];     then export OVPN_ENABLE_COMPRESSION="true";                      fi
 if [ "${REGENERATE_CERTS}x" == "x" ];            then export REGENERATE_CERTS="false";                            fi
+if [ "${OVPN_MANAGEMENT_ENABLE}x" == "x" ];      then export OVPN_MANAGEMENT_ENABLE="false";                      fi
+if [ "${OVPN_MANAGEMENT_NOAUTH}x" == "x" ];      then export OVPN_MANAGEMENT_NOAUTH="false";                      fi
 if [ "${DEBUG}x" == "x" ];                       then export DEBUG="false";                                       fi
 if [ "${LOG_TO_STDOUT}x" == "x" ];               then export LOG_TO_STDOUT="true";                                fi
 if [ "${ENABLE_OTP}x" == "x" ];                  then export ENABLE_OTP="false";                                  fi
