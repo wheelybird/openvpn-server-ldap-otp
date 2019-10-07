@@ -9,7 +9,7 @@ A volume is created for data persistence.
 The [VORACLE ATTACK](https://community.openvpn.net/openvpn/wiki/VORACLE) uses a vulnerability in OpenVPN's traffic compression.   **It is highly recommended that you disable compression** using `OVPN_ENABLE_COMPRESSION=false`.  
 Compression is enabled by default for backwards-compatibility - if either the client or server's configuration has `comp-lzo` set and the other doesn't then the tunnel will break.  Compression was set without an option to disable it in previous versions of this container, so all previous client configurations will have it enabled.
 
-##Configuration
+## Configuration
 
 Configuration is via environmental variables.  Here's a list, along with the default value in brackets:
 
