@@ -4,6 +4,13 @@ This will create an OpenVPN server. You can either use LDAP for authentication (
 The container will automatically generate the certificates on the first run (using a 2048 bit key) which means that *the initial run could take several minutes* whilst keys are generated.  The client configuration will be output in the logs.
 A volume is created for data persistence.
 
+### A note about the VORACLE attack
+
+The [VORACLE ATTACK](https://community.openvpn.net/openvpn/wiki/VORACLE) uses a vulnerability in OpenVPN's traffic compression.   **It is highly recommended that you disable compression** using `OVPN_ENABLE_COMPRESSION=false`.  
+Compression is enabled by default for backwards-compatibility - if either the client or server's configuration has `comp-lzo` set and the other doesn't then the tunnel will break.  Compression was set without an option to disable it in previous versions of this container, so all previous client configurations will have it enabled.
+
+##Configuration
+
 Configuration is via environmental variables.  Here's a list, along with the default value in brackets:
 
 #### Mandatory settings:
@@ -15,11 +22,10 @@ Configuration is via environmental variables.  Here's a list, along with the def
  * `LDAP_URI`: The URI used to connect to the LDAP server.  e.g. `ldap://ldap.example.org`.
  * `LDAP_BASE_DN`: The base DN used for LDAP lookups. e.g. `dc=example,dc=org`.
 
-
 #### Optional settings:
 
  * `USE_CLIENT_CERTIFICATE` (false): If this is set to `true` then the container will generate a client key and certificate and won't use LDAP (or OTP) for authentication.  See _Using a client certificate_ below for more information.
- 
+
  * `LDAP_BIND_USER_DN` (_undefined_):  If your LDAP server doesn't allow anonymous binds, use this to specify a user DN to use for lookups.
  * `LDAP_BIND_USER_PASS` (_undefined_): The password for the bind user.
  * `LDAP_FILTER` (_undefined_): A filter to apply to LDAP lookups.  This allows you to limit the lookup results and thereby who will be authenticated.  e.g. `memberOf=cn=staff,cn=groups,cn=accounts,dc=example,dc=org`
@@ -36,6 +42,7 @@ Configuration is via environmental variables.  Here's a list, along with the def
  * `OVPN_DNS_SERVERS` (_undefined_):  A comma-separated list of DNS nameservers to push to the client.  Set this if the remote network has its own DNS or if you route all traffic through the VPN and the remote side blocks access to external name servers.  Note that not all OpenVPN clients will automatically use these nameservers.  e.g. `8.8.8.8,8.8.4.4`
  * `OVPN_DNS_SEARCH_DOMAIN` (_undefined_):  If using the remote network's DNS servers, push a search domain.  This will allow you to lookup by hostnames rather than fully-qualified domain names.  i.e. setting this to `example.org` will allow `ping remotehost` instead of `ping remotehost.example.org`.
  * `OVPN_REGISTER_DNS` (false): Include `register-dns` in the client config, which is a Windows client option that can force some clients to load the DNS configuration.
+ * `OVPN_ENABLE_COMPRESSION` (true): Enable this to add `comp-lzo` to the server and client configuration.  This will compress traffic going through the VPN tunnel.
  * `OVPN_VERBOSITY` (4):  The verbosity of OpenVPN's logs.
 
  * `OVPN_MANAGEMENT_ENABLE` (false): Enable the TCP management interface on port 5555. This service allows raw TCP and telnet connections, check [the docs](https://openvpn.net/community-resources/management-interface/) for further information. 
@@ -69,6 +76,8 @@ docker run \
 
 * Extract the client configuration (along with embedded certificates) from the running container:
 `docker exec -ti openvpn show-client-config`
+
+* An image based on Centos 7 is available via `wheelybird/openvpn-ldap-otp:centos7` thanks to GitHub user *benohara*.
 
 
 #### Using OTP

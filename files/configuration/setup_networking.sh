@@ -5,9 +5,9 @@ if [ ! -c /dev/net/tun ]; then
  mknod /dev/net/tun c 10 200
 fi
 
-ovpn_net_net=`whatmask ${OVPN_NETWORK} | grep 'Network Address' | awk '{ print $5 }'`
-ovpn_net_cidr=`whatmask ${OVPN_NETWORK} | grep 'CIDR' | awk '{ print $4 }'`
-ovpn_net="${ovpn_net_net}${ovpn_net_cidr}"
+ovpn_net_net=`echo ${OVPN_NETWORK} | awk '{ print $1 }'`
+ovpn_net_cidr=`ipcalc -nb ${OVPN_NETWORK} | grep ^Netmask | awk '{ print $NF }'`
+ovpn_net="${ovpn_net_net}/${ovpn_net_cidr}"
 
 export this_natdevice=`route | grep '^default' | grep -o '[^ ]*$'`
 
@@ -27,10 +27,10 @@ if [ "${OVPN_ROUTES}x" != "x" ] ; then
 
    if [ "$OVPN_NAT" == "true" ]; then
     IFS=" "
-    this_net=`whatmask $this_route | grep 'Network Address' | awk '{ print $5 }'`
-    this_cidr=`whatmask $this_route | grep 'CIDR' | awk '{ print $4 }'`
+    this_net=`echo $this_route | awk '{ print $1 }'`
+    this_cidr=`ipcalc -nb $this_route | grep ^Netmask | awk '{ print $NF }'`
     IFS=","
-    to_masquerade="${this_net}${this_cidr}"
+    to_masquerade="${this_net}/${this_cidr}"
     echo "iptables: masquerade from $ovpn_net to $to_masquerade via $this_natdevice"
     iptables -t nat -C POSTROUTING -s "$ovpn_net" -d "$to_masquerade" -o $this_natdevice -j MASQUERADE || \
     iptables -t nat -A POSTROUTING -s "$ovpn_net" -d "$to_masquerade" -o $this_natdevice -j MASQUERADE

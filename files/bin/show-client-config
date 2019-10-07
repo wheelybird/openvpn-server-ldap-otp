@@ -23,10 +23,13 @@ remote-cert-tls server
 key-direction 1
 cipher AES-256-CBC
 auth SHA512
-comp-lzo
 proto tcp
 reneg-sec 0
 "
+
+if [ "${OVPN_ENABLE_COMPRESSION}" == "true" ]; then
+ echo "comp-lzo"
+fi
 
 if [ "${OVPN_ROUTES}x" == "x" ] ; then
  echo "redirect-gateway def1"
@@ -48,16 +51,8 @@ if [ "${OVPN_DNS_SERVERS}x" != "x" ] ; then
  "
 
  FS=',' read -r -a nameservers <<< "$OVPN_DNS_SERVERS"
- 
- #for this_dns_server in $nameservers ; do
- # echo "push \"dhcp-option DNS $this_dns_server\""
- #done
 
 fi
-
-#if [ "${OVPN_DNS_SEARCH_DOMAIN}x" != "x" ]; then
-# echo "dhcp-option DOMAIN $OVPN_DNS_SEARCH_DOMAIN"
-#fi
 
 # Windows: this can force some windows clients to load the DNS configuration
 if [ "${OVPN_REGISTER_DNS}" == "true" ]; then 

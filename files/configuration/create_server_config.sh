@@ -32,6 +32,10 @@ if [ "${OVPN_DNS_SEARCH_DOMAIN}x" != "x" ]; then
  echo "push \"dhcp-option DOMAIN $OVPN_DNS_SEARCH_DOMAIN\"" >> $CONFIG_FILE
 fi
 
+if [ "${OVPN_ENABLE_COMPRESSION}" == "true" ]; then
+  echo "comp-lzo"
+fi
+
 cat /tmp/routes_config.txt >> $CONFIG_FILE
 
 cat <<Part02 >>$CONFIG_FILE
@@ -45,8 +49,6 @@ tls-auth $PKI_DIR/ta.key 0
 tls-cipher $OVPN_TLS_CIPHERS
 auth SHA512
 cipher AES-256-CBC
-
-comp-lzo
 
 user nobody
 group nobody
