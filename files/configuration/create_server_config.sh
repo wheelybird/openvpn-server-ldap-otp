@@ -33,17 +33,33 @@ if [ "${OVPN_DNS_SEARCH_DOMAIN}x" != "x" ]; then
 fi
 
 if [ "${OVPN_ENABLE_COMPRESSION}" == "true" ]; then
-  echo "comp-lzo"
+  echo "comp-lzo" >> $CONFIG_FILE
 fi
 
-cat /tmp/routes_config.txt >> $CONFIG_FILE
+if [ "${OVPN_IDLE_TIMEOUT}x" != "x" ] && [ "${OVPN_IDLE_TIMEOUT##*[!0-9]*}" ] ; then
+  cat <<TIMEOUTS >> $CONFIG_FILE
+
+inactive $OVPN_IDLE_TIMEOUT
+ping 10
+ping-exit 60
+
+push "inactive $OVPN_IDLE_TIMEOUT"
+push "ping 10"
+push "ping-exit 60"
+
+TIMEOUTS
+else
+  echo -e "keepalive 10 60\n\n" >> $CONFIG_FILE
+fi
+
+if [ -f "/tmp/routes_config.txt" ]; then
+  cat /tmp/routes_config.txt >> $CONFIG_FILE
+fi
 
 cat <<Part02 >>$CONFIG_FILE
 
 # As we're using LDAP, each client can use the same certificate
 duplicate-cn
-
-keepalive 10 120
 
 tls-auth $PKI_DIR/ta.key 0 
 tls-cipher $OVPN_TLS_CIPHERS
