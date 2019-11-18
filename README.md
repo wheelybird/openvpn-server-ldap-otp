@@ -43,6 +43,7 @@ Configuration is via environmental variables.  Here's a list, along with the def
  * `OVPN_DNS_SEARCH_DOMAIN` (_undefined_):  If using the remote network's DNS servers, push a search domain.  This will allow you to lookup by hostnames rather than fully-qualified domain names.  i.e. setting this to `example.org` will allow `ping remotehost` instead of `ping remotehost.example.org`.
  * `OVPN_REGISTER_DNS` (false): Include `register-dns` in the client config, which is a Windows client option that can force some clients to load the DNS configuration.
  * `OVPN_ENABLE_COMPRESSION` (true): Enable this to add `comp-lzo` to the server and client configuration.  This will compress traffic going through the VPN tunnel.
+ * `OVPN_IDLE_TIMEOUT` (_undefined_): The number of seconds before an idle VPN connection will be disconnected.  This also prevents the client reconnecting due to a keepalive heartbeat timeout.  You might want to use this setting for compliance reasons (e.g. PCI_DSS).
  * `OVPN_VERBOSITY` (4):  The verbosity of OpenVPN's logs.
 
  * `OVPN_MANAGEMENT_ENABLE` (false): Enable the TCP management interface on port 5555. This service allows raw TCP and telnet connections, check [the docs](https://openvpn.net/community-resources/management-interface/) for further information. 
@@ -77,9 +78,6 @@ docker run \
 * Extract the client configuration (along with embedded certificates) from the running container:
 `docker exec -ti openvpn show-client-config`
 
-* An image based on Centos 7 is available via `wheelybird/openvpn-ldap-otp:centos7` thanks to GitHub user *benohara*.
-
-
 #### Using OTP
 
 If you set `ENABLE_OTP=true` then OpenVPN will be configured to use two-factor authentication: you'll need your LDAP password and a passcode in order to connect.  The passcode is provided by the Google Authenticator app.  You'll need to download that from your app store.   
@@ -101,3 +99,7 @@ The Dockerfile and associated assets are available at https://github.com/wheelyb
 #### Fail2ban Administration
 
 You can ban/unban an ip address using the `fail2ban-client` command within the running container. For example, running `docker exec openvpn fail2ban-client set openvpn <banip|unbanip> <IPV4 Address>`. You can view the ban logs by running `docker exec openvpn tail -50 /var/log/fail2ban.log`.
+
+#### Keepalive settings
+
+The OpenVPN server is configured to send a keepalive ping every ten seconds and to restart the client connection if no reply has been recieved after a minute.  If you set `OVPN_IDLE_TIMEOUT` then the server will kill the client connection after that many seconds and the client will be configured to _exit_ instead of restart after a minute of failed pings.  So for this reason your client can take up to a minute longer than the configured `OVPN_IDLE_TIMEOUT` timeout vaule before it exits.
