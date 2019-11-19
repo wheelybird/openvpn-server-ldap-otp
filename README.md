@@ -28,7 +28,7 @@ Configuration is via environmental variables.  Here's a list, along with the def
 
  * `LDAP_BIND_USER_DN` (_undefined_):  If your LDAP server doesn't allow anonymous binds, use this to specify a user DN to use for lookups.
  * `LDAP_BIND_USER_PASS` (_undefined_): The password for the bind user.
- * `LDAP_FILTER` (_undefined_): A filter to apply to LDAP lookups.  This allows you to limit the lookup results and thereby who will be authenticated.  e.g. `memberOf=cn=staff,cn=groups,cn=accounts,dc=example,dc=org`
+ * `LDAP_FILTER` (_undefined_): A filter to apply to LDAP lookups.  This allows you to limit the lookup results and thereby who will be authenticated.  e.g. `(memberOf=cn=staff,cn=groups,cn=accounts,dc=example,dc=org)`.  See [Filtering](#Filtering)` below for more information.
  * `LDAP_LOGIN_ATTRIBUTE` (uid):  The LDAP attribute used for the authentication lookup, i.e. which attribute is matched to the username when you log into the OpenVPN server.
  * `LDAP_TLS` (false):  Set to 'true' to enable a TLS connection to the LDAP server.
  * `LDAP_TLS_VALIDATE_CERT` (true):  Set to 'true' to ensure the TLS certificate can be validated.  'false' will ignore certificate issues - you might need this if you're using a self-signed certificate and not passing in the CA certificate.
@@ -43,7 +43,7 @@ Configuration is via environmental variables.  Here's a list, along with the def
  * `OVPN_DNS_SEARCH_DOMAIN` (_undefined_):  If using the remote network's DNS servers, push a search domain.  This will allow you to lookup by hostnames rather than fully-qualified domain names.  i.e. setting this to `example.org` will allow `ping remotehost` instead of `ping remotehost.example.org`.
  * `OVPN_REGISTER_DNS` (false): Include `register-dns` in the client config, which is a Windows client option that can force some clients to load the DNS configuration.
  * `OVPN_ENABLE_COMPRESSION` (true): Enable this to add `comp-lzo` to the server and client configuration.  This will compress traffic going through the VPN tunnel.
- * `OVPN_IDLE_TIMEOUT` (_undefined_): The number of seconds before an idle VPN connection will be disconnected.  This also prevents the client reconnecting due to a keepalive heartbeat timeout.  You might want to use this setting for compliance reasons (e.g. PCI_DSS).
+ * `OVPN_IDLE_TIMEOUT` (_undefined_): The number of seconds before an idle VPN connection will be disconnected.  This also prevents the client reconnecting due to a keepalive heartbeat timeout.  You might want to use this setting for compliance reasons (e.g. PCI_DSS).  See [Keepalive settings](#Keepalive settings)` below for more information
  * `OVPN_VERBOSITY` (4):  The verbosity of OpenVPN's logs.
 
  * `OVPN_MANAGEMENT_ENABLE` (false): Enable the TCP management interface on port 5555. This service allows raw TCP and telnet connections, check [the docs](https://openvpn.net/community-resources/management-interface/) for further information. 
@@ -103,3 +103,7 @@ You can ban/unban an ip address using the `fail2ban-client` command within the r
 #### Keepalive settings
 
 The OpenVPN server is configured to send a keepalive ping every ten seconds and to restart the client connection if no reply has been recieved after a minute.  If you set `OVPN_IDLE_TIMEOUT` then the server will kill the client connection after that many seconds and the client will be configured to _exit_ instead of restart after a minute of failed pings.  So for this reason your client can take up to a minute longer than the configured `OVPN_IDLE_TIMEOUT` timeout vaule before it exits.
+
+#### Filtering
+
+You can restrict who can log into the VPN via LDAP filters.  This container uses [nss-pam-ldapd](https://arthurdejong.org/nss-pam-ldapd/nslcd.conf.5) to authenticate against LDAP.  `LDAP_FILTER` is passed to the `filter` keyword and `nslcd` will automatically append a filter to restrict it to that user (e.g. `(&(uid=john.smith)(memberOf=cn=staff,cn=groups,cn=accounts,dc=example,dc=org))`.
