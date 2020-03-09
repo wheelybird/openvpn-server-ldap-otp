@@ -47,7 +47,9 @@ if [ "${DEBUG}x" == "x" ];                        then export DEBUG="false";    
 if [ "${LOG_TO_STDOUT}x" == "x" ];                then export LOG_TO_STDOUT="true";                       fi
 if [ "${ENABLE_OTP}x" == "x" ];                   then export ENABLE_OTP="false";                         fi
 if [ "${LDAP_LOGIN_ATTRIBUTE}x" == "x" ];         then export LDAP_LOGIN_ATTRIBUTE="uid";                 fi
+if [ "${LDAP_ENCRYPT_CONNECTION}x" == "x" ];      then export LDAP_ENCRYPT_CONNECTION="off";              fi
 if [ "${LDAP_TLS}x" == "x" ];                     then export LDAP_TLS="false";                           fi
+if [ "${LDAP_TLS}" == 'true' ];                   then export LDAP_ENCRYPT_CONNECTION="starttls";         fi
 if [ "${LDAP_TLS_VALIDATE_CERT}x" == "x" ];       then export LDAP_TLS_VALIDATE_CERT="true";              fi
 if [ "${KEY_LENGTH}x" == "x" ];                   then export KEY_LENGTH="2048";                          fi
 if [ "${FAIL2BAN_ENABLED}x" == "x" ];             then export FAIL2BAN_ENABLED="false";                   fi
@@ -60,3 +62,6 @@ if [ "$LOG_TO_STDOUT" == "true" ]; then
 else
  LOG_FILE="${LOG_DIR}/openvpn.log"
 fi
+
+
+

@@ -16,8 +16,10 @@ ldap_version 3
 
 EoLDAP
 
-if [ "${LDAP_TLS}" == "true" ] ; then
+if [ "${LDAP_ENCRYPT_CONNECTION}" == "starttls" ] ; then
   echo "ssl start_tls" >> $LDAP_CONFIG
+elif [ "${LDAP_ENCRYPT_CONNECTION}" == "on" ] ; then
+  echo "ssl on" >> $LDAP_CONFIG
 fi
 
 if [ "${LDAP_TLS_VALIDATE_CERT}" == "false" ] ; then

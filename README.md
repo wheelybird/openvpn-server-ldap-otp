@@ -30,9 +30,10 @@ Configuration is via environmental variables.  Here's a list, along with the def
  * `LDAP_BIND_USER_PASS` (_undefined_): The password for the bind user.
  * `LDAP_FILTER` (_undefined_): A filter to apply to LDAP lookups.  This allows you to limit the lookup results and thereby who will be authenticated.  e.g. `(memberOf=cn=staff,cn=groups,cn=accounts,dc=example,dc=org)`.  See [Filtering](#Filtering) for more information.
  * `LDAP_LOGIN_ATTRIBUTE` (uid):  The LDAP attribute used for the authentication lookup, i.e. which attribute is matched to the username when you log into the OpenVPN server.
- * `LDAP_TLS` (false):  Set to 'true' to enable a TLS connection to the LDAP server.
+ * `LDAP_ENCRYPT_CONNECTION` (off): Options:  `on|starttls|off`. This sets the 'ssl' option in nslcd.  `on` will connect to the LDAP server over TLS (SSL).  `starttls` will initially connect unencrypted and negotiate a TLS connection if one is available.  `off` will disable SSL/TLS.
+ * `LDAP_TLS` (false):  Changes (overrides) `LDAP_ENCRYPT_CONNECTION` to `starttls` (this setting is for backwards-compatibility with previous versions).
  * `LDAP_TLS_VALIDATE_CERT` (true):  Set to 'true' to ensure the TLS certificate can be validated.  'false' will ignore certificate issues - you might need this if you're using a self-signed certificate and not passing in the CA certificate.
- * `LDAP_TLS_CA_CERT` (_undefined_): The contents of the CA certificate file for the LDAP server.  You'll need this to enable TLS if using self-signed certificates.
+ * `LDAP_TLS_CA_CERT` (_undefined_): The contents of the CA certificate file for the LDAP server.  You'll need this to enable TLS when using self-signed certificates.
 
  * `ACTIVE_DIRECTORY_COMPAT_MODE` (false): Sets `LDAP_LOGIN_ATTRIBUTE` to `sAMAccountName` and `LDAP_FILTER` to `(objectClass=user)`, which allows LDAP lookups to work with Active Directory.  This will override any value you've manually set for those settings.
 
