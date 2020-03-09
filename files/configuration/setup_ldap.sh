@@ -16,8 +16,10 @@ ldap_version 3
 
 EoLDAP
 
-if [ "${LDAP_TLS}" == "true" ] ; then
+if [ "${LDAP_ENCRYPT_CONNECTION}" == "starttls" ] ; then
   echo "ssl start_tls" >> $LDAP_CONFIG
+elif [ "${LDAP_ENCRYPT_CONNECTION}" == "on" ] ; then
+  echo "ssl on" >> $LDAP_CONFIG
 fi
 
 if [ "${LDAP_TLS_VALIDATE_CERT}" == "false" ] ; then
@@ -27,6 +29,8 @@ fi
 if [ "${LDAP_TLS_CA_CERT}x" != "x" ] ; then
   echo "$LDAP_TLS_CA_CERT" > $OPENVPN_DIR/ldap-ca.crt
   echo "tls_cacertfile ${OPENVPN_DIR}/ldap-ca.crt" >> $LDAP_CONFIG
+else
+  echo "tls_cacertfile /etc/pki/tls/certs/ca-bundle.crt" >> $LDAP_CONFIG
 fi
 
 if [ "${ACTIVE_DIRECTORY_COMPAT_MODE}" == "true" ]; then
