@@ -114,3 +114,5 @@ if [ "${OVPN_MANAGEMENT_ENABLE}" == "true" ]; then
 else
   echo "openvpn: management interface disabled"
 fi
+
+echo $OVPN_EXTRA >> $CONFIG_FILE

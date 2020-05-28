@@ -48,6 +48,7 @@ Configuration is via environmental variables.  Here's a list, along with the def
  * `OVPN_ENABLE_COMPRESSION` (true): Enable this to add `comp-lzo` to the server and client configuration.  This will compress traffic going through the VPN tunnel.
  * `OVPN_IDLE_TIMEOUT` (_undefined_): The number of seconds before an idle VPN connection will be disconnected.  This also prevents the client reconnecting due to a keepalive heartbeat timeout.  You might want to use this setting for compliance reasons (e.g. PCI_DSS).  See [Keepalive settings](#Keepalive settings) for more information
  * `OVPN_VERBOSITY` (4):  The verbosity of OpenVPN's logs.
+ * `OVPN_EXTRA` (_undefined_): Additional configuration options which will be appended verbatim to the server configuration.
 
  * `OVPN_MANAGEMENT_ENABLE` (false): Enable the TCP management interface on port 5555. This service allows raw TCP and telnet connections, check [the docs](https://openvpn.net/community-resources/management-interface/) for further information. 
  * `OVPN_MANAGEMENT_NOAUTH` (false): Allow access to the management interface without any authentication. Note that this option should only be enabled if the management port is not accessible to the internet.
