@@ -2,13 +2,13 @@ CONFIG_FILE="${OPENVPN_DIR}/server.conf"
 
 echo "openvpn: creating server config"
 
-echo "# OpenVPN server configuration" >> $CONFIG_FILE
+echo "# OpenVPN server configuration" > $CONFIG_FILE
 
 if [ "${OVPN_DEFAULT_SERVER}" == "true" ]; then
  echo "server $OVPN_NETWORK" >> $CONFIG_FILE
 fi
 
-cat <<Part01 >$CONFIG_FILE
+cat <<Part01 >>$CONFIG_FILE
 
 port 1194
 proto $OVPN_PROTOCOL
