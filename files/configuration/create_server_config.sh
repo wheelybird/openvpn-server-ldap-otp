@@ -12,7 +12,7 @@ cat <<Part01 >>$CONFIG_FILE
 
 port 1194
 proto $OVPN_PROTOCOL
-dev tun
+dev $OVPN_INTERFACE
 
 ca $PKI_DIR/ca.crt
 cert $PKI_DIR/issued/${OVPN_SERVER_CN}.crt
