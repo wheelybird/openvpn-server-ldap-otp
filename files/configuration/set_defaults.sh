@@ -35,7 +35,7 @@ default_tls_ciphers="TLS-DHE-RSA-WITH-AES-256-CBC-SHA:TLS-DHE-RSA-WITH-AES-256-C
 
 if [ "${OVPN_TLS_CIPHERS}x" == "x" ];             then export OVPN_TLS_CIPHERS=$default_tls_ciphers;      fi
 if [ "${OVPN_PROTOCOL}x" == "x" ];                then export OVPN_PROTOCOL="udp";                        fi
-if [ "${OVPN_INTERFACE}x" == "x" ];               then export OVPN_INTERFACE="tun";                      fi
+if [ "${OVPN_INTERFACE_NAME}x" == "x" ];          then export OVPN_INTERFACE_NAME="tun";                  fi
 if [ "${OVPN_NETWORK}x" == "x" ];                 then export OVPN_NETWORK="10.50.50.0 255.255.255.0";    fi
 if [ "${OVPN_VERBOSITY}x" == "x" ];               then export OVPN_VERBOSITY="3";                         fi
 if [ "${OVPN_NAT}x" == "x" ];                     then export OVPN_NAT="true";                            fi
