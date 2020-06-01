@@ -76,7 +76,7 @@ docker run \
            -e "LDAP_URI=ldap://ldap.mycompany.com" \
            -e "LDAP_BASE_DN=dc=mycompany,dc=com" \
            --cap-add=NET_ADMIN \
-           wheelybird/openvpn-ldap-otp:v1.3
+           wheelybird/openvpn-ldap-otp:v1.4
 ```
 
 * `--cap-add=NET_ADMIN` is necessary; the container needs to create the tunnel device and create iptable rules.
