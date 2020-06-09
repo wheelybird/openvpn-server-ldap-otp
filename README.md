@@ -28,7 +28,7 @@ Configuration is via environmental variables.  Here's a list, along with the def
 
  * `LDAP_BIND_USER_DN` (_undefined_):  If your LDAP server doesn't allow anonymous binds, use this to specify a user DN to use for lookups.
  * `LDAP_BIND_USER_PASS` (_undefined_): The password for the bind user.
- * `LDAP_FILTER` (_undefined_): A filter to apply to LDAP lookups.  This allows you to limit the lookup results and thereby who will be authenticated.  e.g. `(memberOf=cn=staff,cn=groups,cn=accounts,dc=example,dc=org)`.  See [Filtering](#Filtering) for more information.
+ * `LDAP_FILTER` (`(objectClass=posixAccount)`): A filter to apply to LDAP lookups.  This allows you to limit the lookup results and thereby who will be authenticated.  e.g. `(memberOf=cn=staff,cn=groups,cn=accounts,dc=example,dc=org)`.  See [Filtering](#Filtering) for more information.
  * `LDAP_LOGIN_ATTRIBUTE` (uid):  The LDAP attribute used for the authentication lookup, i.e. which attribute is matched to the username when you log into the OpenVPN server.
  * `LDAP_ENCRYPT_CONNECTION` (off): Options:  `on|starttls|off`. This sets the 'ssl' option in nslcd.  `on` will connect to the LDAP server over TLS (SSL).  `starttls` will initially connect unencrypted and negotiate a TLS connection if one is available.  `off` will disable SSL/TLS.
  * `LDAP_TLS` (false):  Changes (overrides) `LDAP_ENCRYPT_CONNECTION` to `starttls` (this setting is for backwards-compatibility with previous versions).
@@ -112,4 +112,5 @@ The OpenVPN server is configured to send a keepalive ping every ten seconds and 
 
 #### Filtering
 
-You can restrict who can log into the VPN via LDAP filters.  This container uses [nss-pam-ldapd](https://arthurdejong.org/nss-pam-ldapd/nslcd.conf.5) to authenticate against LDAP.  `LDAP_FILTER` is passed to the `filter` keyword and `nslcd` will automatically append a filter to restrict it to that user (e.g. `(&(uid=john.smith)(memberOf=cn=staff,cn=groups,cn=accounts,dc=example,dc=org))`.
+You can restrict who can log into the VPN via LDAP filters.  This container uses [nss-pam-ldapd](https://arthurdejong.org/nss-pam-ldapd/nslcd.conf.5) to authenticate against LDAP.  `LDAP_FILTER` is passed to the `filter passwd` keyword and `nslcd` will automatically append a filter to restrict it to that user (e.g. `(&(uid=john.smith)(memberOf=cn=staff,cn=groups,cn=accounts,dc=example,dc=org))`.
+`nslcd` defaults to `(objectClass=posixAccount)`, which will therefore create a filter like `(&(uid=john.smith)(objectClass=posixAccount))` if `LDAP_FILTER` is undefined.
