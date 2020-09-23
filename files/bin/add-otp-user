@@ -4,11 +4,11 @@
 # Generate OpenVPN users via google authenticator
 #
 
-if [ -z $1 ]; then
-    echo "Usage: add_otp_user USERNAME"
-    exit 1
+if [ -z "$1" ]
+then
+  echo "Usage: add_otp_user USERNAME"
+  exit 1
 fi
-
 
 # Ensure the otp folder is present
 [ -d /etc/openvpn/otp ] || mkdir -p /etc/openvpn/otp
@@ -22,4 +22,3 @@ google-authenticator \
                      --window-size=3 \
                      -l "${1}@${OVPN_SERVER_CN}" \
                      -s /etc/openvpn/otp/${1}.google_authenticator
-

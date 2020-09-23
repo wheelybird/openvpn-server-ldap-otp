@@ -2,100 +2,78 @@
 
 source /opt/configuration/set_defaults.sh
 
-if [ ! -f "$PKI_DIR/private/${OVPN_SERVER_CN}.key" ]; then
- echo  >&2
- echo "**" >&2
- echo "The server key wasn't found, which means that something's" >&2
- echo "gone wrong with generating the certificates.  Try running" >&2
- echo "the container again with the REGENERATE_CERTS environmental" >&2
- echo "variable set to 'true'" >&2
- echo "**" >&2
- echo  >&2
- exit 1
+if [ ! -f "$PKI_DIR/private/$OVPN_SERVER_CN.key" ]
+then
+  echo  >&2
+  echo "**" >&2
+  echo "The server key wasn't found, which means that something's" >&2
+  echo "gone wrong with generating the certificates.  Try running" >&2
+  echo "the container again with the REGENERATE_CERTS environmental" >&2
+  echo "variable set to 'true'" >&2
+  echo "**" >&2
+  echo  >&2
+  exit 1
 fi
 
 echo "
 client
-dev tun
-persist-key
-persist-tun
+nobind
+dev $OVPN_INTERFACE_NAME
 remote-cert-tls server
+remote $OVPN_SERVER_CN 1194 $OVPN_PROTOCOL
 key-direction 1
-cipher AES-256-CBC
+tun-mtu 1500
+
 auth SHA512
-proto tcp
-reneg-sec 0
+cipher AES-256-CBC
+auth-nocache
 "
+[ "$USE_CLIENT_CERTIFICATE" != "true" ] && echo "auth-user-pass"
+[ -z "$OVPN_ROUTES" ] && echo "redirect-gateway def1"
 
-if [ "${OVPN_ENABLE_COMPRESSION}" == "true" ]; then
- echo "comp-lzo"
-fi
-
-if [ "${OVPN_ROUTES}x" == "x" ] ; then
- echo "redirect-gateway def1"
-fi
-
-if [ "${USE_CLIENT_CERTIFICATE}" != "true" ] ; then
- echo "auth-user-pass"
-fi
-
-if [ "${OVPN_DNS_SERVERS}x" != "x" ] ; then
-
- echo "
-  ##Un-comment these lines in Ubuntu (and other Linux distros)
-  ##in order to set the DNS server:
-
-  #script-security 2
-  #up /etc/openvpn/update-resolv-conf
-  #down /etc/openvpn/update-resolv-conf
- "
-
- FS=',' read -r -a nameservers <<< "$OVPN_DNS_SERVERS"
-
-fi
+[ "$OVPN_ENABLE_COMPRESSION" = "true" ] && echo "comp-lzo"
 
 # Windows: this can force some windows clients to load the DNS configuration
-if [ "${OVPN_REGISTER_DNS}" == "true" ]; then 
- echo "register-dns"
-fi 
+[ "$OVPN_REGISTER_DNS" = "true" ] && echo "register-dns"
 
-echo "
-# Set log file verbosity
-verb $OVPN_VERBOSITY
+if [ -n "$OVPN_DNS_SERVERS" ]
+then
 
-<connection>
-remote $OVPN_SERVER_CN 1194 $OVPN_PROTOCOL
-float
-nobind
-</connection>
+  echo "
+##Un-comment these lines in Ubuntu (and other Linux distros)
+##in order to set the DNS server:
 
-<ca>
-$(cat $PKI_DIR/ca.crt)
-</ca>
-<tls-auth>
-$(cat $PKI_DIR/ta.key)
-</tls-auth>
-key-direction 1
+#script-security 2
+#up /etc/openvpn/update-resolv-conf
+#down /etc/openvpn/update-resolv-conf
 "
 
-if [ "${USE_CLIENT_CERTIFICATE}" == "true" ] ; then
+  FS=',' read -r -a nameservers <<< "$OVPN_DNS_SERVERS"
 
- if [ ! -f "$PKI_DIR/private/client.key" ] || [ ! -f "$PKI_DIR/issued/client.crt" ] ; then
- 
-  echo "USE_CLIENT_CERTIFICATE was set to 'true', but the client"
-  echo "certificates weren't generated.  Exiting..."
-  exit 1
- else 
-  echo "
+fi
+
+if [ "$USE_CLIENT_CERTIFICATE" = "true" ]
+then
+  if ([ ! -f "$PKI_DIR/private/client.key" ] || [ ! -f "$PKI_DIR/issued/client.crt" ])
+  then
+    echo "USE_CLIENT_CERTIFICATE was set to 'true', but the client"
+    echo "certificates weren't generated.  Exiting..."
+    exit 1
+  else
+    echo "
 <cert>
 $(cat $PKI_DIR/issued/client.crt)
 </cert>
 <key>
 $(cat $PKI_DIR/private/client.key)
-</key>
-"
- fi
-
+</key>"
+  fi
 fi
 
-
+echo "
+<ca>
+$(cat $PKI_DIR/ca.crt)
+</ca>
+<tls-auth>
+$(cat $PKI_DIR/ta.key)
+</tls-auth>"
