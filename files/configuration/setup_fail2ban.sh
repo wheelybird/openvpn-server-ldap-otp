@@ -38,5 +38,7 @@ cat <<EOF >> /etc/fail2ban/fail2ban.local
 logtarget = /proc/1/fd/1
 EOF
 
-
-service fail2ban start
+touch $LOG_FILE
+chown openvpn:openvpn $LOG_FILE
+echo "Starting fail2ban..."
+/usr/bin/fail2ban-server -xb --logtarget=stdout start
