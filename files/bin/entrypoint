@@ -1,40 +1,41 @@
 #!/bin/bash
 
-if [ "$DEBUG" == "true" ]; then
-  set -x
-fi
+[ "$DEBUG" = "true" ] && set -x
 set -e
 
 CONFIGFILES="/opt/configuration"
+CLIENT_FILE="/opt/ovpn_export/client.ovpn"
 
 source "$CONFIGFILES/set_defaults.sh"
 source "$CONFIGFILES/setup_networking.sh"
 source "$CONFIGFILES/setup_pki.sh"
 
-if [ "${USE_CLIENT_CERTIFICATE}" != "true" ] ; then
- source "$CONFIGFILES/setup_ldap.sh"
- source "$CONFIGFILES/setup_otp.sh"
+if [ "$USE_CLIENT_CERTIFICATE" != "true" ]
+then
+  source "$CONFIGFILES/setup_ldap.sh"
+  source "$CONFIGFILES/setup_otp.sh"
 fi 
 
 source "$CONFIGFILES/create_server_config.sh"
 
-if [ "${FAIL2BAN_ENABLED}" == "true" ] ; then
- source "$CONFIGFILES/setup_fail2ban.sh"
-fi
+[ "$FAIL2BAN_ENABLED" = "true" ] && source "$CONFIGFILES/setup_fail2ban.sh"
+
+[ "$DEBUG" = "true" ] && echo "# log files: $LOG_DIR" && ls -lh $LOG_DIR
 
 echo
 echo "***************"
 echo " Client config "
 echo "***************"
 echo
-/usr/local/bin/show-client-config
+/usr/local/bin/show-client-config > $CLIENT_FILE
+cat $CLIENT_FILE
 
 echo
 echo "***************"
 echo "Running NSCLD"
 echo "***************"
 echo
-nslcd
+nslcd -d &
 
 echo
 echo "***************"

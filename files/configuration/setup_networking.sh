@@ -2,7 +2,7 @@
 
 mkdir -p /dev/net
 if [ ! -c /dev/net/tun ]; then
- mknod /dev/net/tun c 10 200
+  mknod /dev/net/tun c 10 200
 fi
 
 ovpn_net_net=`echo ${OVPN_NETWORK} | awk '{ print $1 }'`
@@ -13,28 +13,31 @@ export this_natdevice=`route | grep '^default' | grep -o '[^ ]*$'`
 
 #Set up routes to push to the client.
 
-if [ "${OVPN_ROUTES}x" != "x" ] ; then
+if [ -n "$OVPN_ROUTES" ]
+then
 
   IFS=","
   read -r -a route_list <<< "$OVPN_ROUTES"
 
-  echo "" >/tmp/routes_config.txt
+  echo "" > /tmp/routes_config.txt
 
-  for this_route in ${route_list[@]} ; do
+  for this_route in ${route_list[@]}
+  do
 
-   echo "routes: adding route $this_route to server config"
-   echo "push \"route $this_route\"" >> /tmp/routes_config.txt
-
-   if [ "$OVPN_NAT" == "true" ]; then
-    IFS=" "
-    this_net=`echo $this_route | awk '{ print $1 }'`
-    this_cidr=`ipcalc -nb $this_route | grep ^Netmask | awk '{ print $NF }'`
-    IFS=","
-    to_masquerade="${this_net}/${this_cidr}"
-    echo "iptables: masquerade from $ovpn_net to $to_masquerade via $this_natdevice"
-    iptables -t nat -C POSTROUTING -s "$ovpn_net" -d "$to_masquerade" -o $this_natdevice -j MASQUERADE || \
-    iptables -t nat -A POSTROUTING -s "$ovpn_net" -d "$to_masquerade" -o $this_natdevice -j MASQUERADE
-   fi
+    echo "routes: adding route $this_route to server config"
+    echo "push \"route $this_route\"" >> /tmp/routes_config.txt
+    
+    if [ "$OVPN_NAT" = "true" ]
+    then
+      IFS=" "
+      this_net=`echo $this_route | awk '{ print $1 }'`
+      this_cidr=`ipcalc -nb $this_route | grep ^Netmask | awk '{ print $NF }'`
+      IFS=","
+      to_masquerade="$this_net/$this_cidr"
+      echo "iptables: masquerade from $ovpn_net to $to_masquerade via $this_natdevice"
+      iptables -t nat -C POSTROUTING -s "$ovpn_net" -d "$to_masquerade" -o $this_natdevice -j MASQUERADE || \
+      iptables -t nat -A POSTROUTING -s "$ovpn_net" -d "$to_masquerade" -o $this_natdevice -j MASQUERADE
+    fi
 
   done
 
@@ -42,14 +45,15 @@ if [ "${OVPN_ROUTES}x" != "x" ] ; then
 
 else
 
- #If no routes are set then we'll redirect all traffic from the client over the tunnel.
+  #If no routes are set then we'll redirect all traffic from the client over the tunnel.
 
- echo "push \"redirect-gateway def1\"" >> /tmp/routes_config.txt
- echo "iptables: masquerade from $ovpn_net to everywhere via $this_natdevice"
+  echo "push \"redirect-gateway def1\"" >> /tmp/routes_config.txt
+  echo "iptables: masquerade from $ovpn_net to everywhere via $this_natdevice"
 
- if [ "$OVPN_NAT" == "true" ]; then
-  iptables -t nat -C POSTROUTING -s "$ovpn_net" -o $this_natdevice -j MASQUERADE || \
-  iptables -t nat -A POSTROUTING -s "$ovpn_net" -o $this_natdevice -j MASQUERADE
- fi
+  if [ "$OVPN_NAT" == "true" ]
+  then
+    iptables -t nat -C POSTROUTING -s "$ovpn_net" -o $this_natdevice -j MASQUERADE || \
+    iptables -t nat -A POSTROUTING -s "$ovpn_net" -o $this_natdevice -j MASQUERADE
+  fi
 
 fi
