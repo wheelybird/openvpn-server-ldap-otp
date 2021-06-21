@@ -33,7 +33,13 @@ if [ "${OVPN_DNS_SERVERS}x" != "x" ] ; then
 fi
 
 if [ "${OVPN_DNS_SEARCH_DOMAIN}x" != "x" ]; then
- echo "push \"dhcp-option DOMAIN $OVPN_DNS_SEARCH_DOMAIN\"" >> $CONFIG_FILE
+
+ domains=(${OVPN_DNS_SEARCH_DOMAIN//,/ })
+ 
+ for this_search_domain in "${domains[@]}" ; do
+  echo "push \"dhcp-option DOMAIN $this_search_domain\"" >> $CONFIG_FILE
+ done
+
 fi
 
 if [ "${OVPN_ENABLE_COMPRESSION}" == "true" ]; then
