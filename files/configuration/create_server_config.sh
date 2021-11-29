@@ -33,7 +33,10 @@ if [ "${OVPN_DNS_SERVERS}x" != "x" ] ; then
 fi
 
 if [ "${OVPN_DNS_SEARCH_DOMAIN}x" != "x" ]; then
- echo "push \"dhcp-option DOMAIN $OVPN_DNS_SEARCH_DOMAIN\"" >> $CONFIG_FILE
+ domains=(${OVPN_DNS_SEARCH_DOMAIN//,/ })
+ for this_search_domain in "${domains[@]}" ; do
+  echo "push \"dhcp-option DOMAIN $this_search_domain\"" >> $CONFIG_FILE
+ done
 fi
 
 if [ "${OVPN_ENABLE_COMPRESSION}" == "true" ]; then
@@ -71,7 +74,7 @@ auth SHA512
 cipher AES-256-CBC
 
 user nobody
-group nobody
+group nogroup
 
 persist-key
 persist-tun
@@ -88,7 +91,7 @@ Part02
 if [ "${USE_CLIENT_CERTIFICATE}" != "true" ] ; then
 
 cat <<Part03 >>$CONFIG_FILE
-plugin /usr/lib64/openvpn/plugins/openvpn-plugin-auth-pam.so openvpn
+plugin $(dpkg-query -L openvpn | grep openvpn-plugin-auth-pam.so) openvpn
 verify-client-cert optional
 username-as-common-name
 
