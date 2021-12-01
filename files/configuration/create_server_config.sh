@@ -10,7 +10,7 @@ fi
 
 cat <<Part01 >>$CONFIG_FILE
 
-port 1194
+port $OVPN_PORT
 proto $OVPN_PROTOCOL
 dev $OVPN_INTERFACE_NAME
 dev-type tun

@@ -10,17 +10,17 @@ CONFIGFILES="/opt/configuration"
 source "$CONFIGFILES/set_defaults.sh"
 
 echo
-echo "$(date +%F %T) - Setting up networking..."
+echo "$(date +'%F %T') - Setting up networking..."
 echo
 source "$CONFIGFILES/setup_networking.sh"
 
 echo
-echo "$(date +%F %T) - Setting up PKI..."
+echo "$(date +'%F %T') - Setting up PKI..."
 echo
 source "$CONFIGFILES/setup_pki.sh"
 
 echo
-echo "$(date +%F %T) - Creating configuration files..."
+echo "$(date +'%F %T') - Creating configuration files..."
 echo
 
 if [ "${USE_CLIENT_CERTIFICATE}" != "true" ] ; then
@@ -34,25 +34,30 @@ source "$CONFIGFILES/create_server_config.sh"
 
 if [ "${FAIL2BAN_ENABLED}" == "true" ] ; then
   echo
-  echo "$(date +%F %T) - Starting fail2ban..."
+  echo "$(date +'%F %T') - Starting fail2ban..."
   echo
   source "$CONFIGFILES/setup_fail2ban.sh"
 fi
 
 echo
-echo "$(date +%F %T) - Generating client config ..."
+echo "$(date +'%F %T') - Generating client config ..."
 echo
 echo "---------- Start of client.ovpn ----------"
 /usr/local/bin/show-client-config
 echo "----------  End of client.ovpn  ----------"
 
 echo
-echo "$(date +%F %T) - Starting NSCLD... (ignore any NSS_LDAP module warnings)"
+echo "$(date +'%F %T') - Starting NSCLD... (ignore any NSS_LDAP module warnings)"
 echo
 nslcd
 
 
 echo
-echo "$(date +%F %T) - Running OpenVPN..."
+echo "$(date +'%F %T') - Running OpenVPN..."
 echo
-exec openvpn --config $OPENVPN_DIR/server.conf
+if [ "${FAIL2BAN_ENABLED}" == "true" ] ; then
+  openvpn --daemon --config $OPENVPN_DIR/server.conf
+  exec tail -f $LOG_FILE
+else
+  exec openvpn --config $OPENVPN_DIR/server.conf
+fi

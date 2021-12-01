@@ -64,7 +64,7 @@ echo "
 verb $OVPN_VERBOSITY
 
 <connection>
-remote $OVPN_SERVER_CN 1194 $OVPN_PROTOCOL
+remote $OVPN_SERVER_CN $OVPN_PORT $OVPN_PROTOCOL
 float
 nobind
 </connection>
