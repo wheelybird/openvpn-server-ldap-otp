@@ -16,12 +16,12 @@ fi
 
 echo "
 client
+tls-client
 dev tun
 persist-key
 persist-tun
 remote-cert-tls server
 key-direction 1
-cipher AES-256-CBC
 auth SHA512
 proto tcp
 reneg-sec 0

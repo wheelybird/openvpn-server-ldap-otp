@@ -68,10 +68,10 @@ cat <<Part02 >>$CONFIG_FILE
 # As we're using LDAP, each client can use the same certificate
 duplicate-cn
 
+tls-server
 tls-auth $PKI_DIR/ta.key 0 
 tls-cipher $OVPN_TLS_CIPHERS
 auth SHA512
-cipher AES-256-CBC
 
 user nobody
 group nogroup

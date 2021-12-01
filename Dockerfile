@@ -1,4 +1,4 @@
-FROM debian:stable-slim
+FROM ubuntu:20.04
 
 MAINTAINER Brian Lycett <brian@wheelybird.com>
 

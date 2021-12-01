@@ -1,11 +1,5 @@
 #!/bin/bash
 
-echo
-echo "*****************"
-echo " Fail2ban config "
-echo "*****************"
-echo
-
 cat <<EOF >> /etc/fail2ban/filter.d/openvpn.local
 [Definition]
 
