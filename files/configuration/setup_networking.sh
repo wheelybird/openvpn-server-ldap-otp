@@ -32,7 +32,7 @@ if [ "${OVPN_ROUTES}x" != "x" ] ; then
     IFS=","
     to_masquerade="${this_net}/${this_cidr}"
     echo "iptables: masquerade from $ovpn_net to $to_masquerade via $this_natdevice"
-    echo -n "Checking for existing iptables rule (it will say 'Bad rule' if no rule exists): "
+    echo -n "Checking for existing iptables rule: "
     iptables -t nat -C POSTROUTING -s "$ovpn_net" -d "$to_masquerade" -o $this_natdevice -j MASQUERADE 2>&1 || \
     iptables -t nat -A POSTROUTING -s "$ovpn_net" -d "$to_masquerade" -o $this_natdevice -j MASQUERADE
    fi
@@ -49,7 +49,7 @@ else
 
  if [ "$OVPN_NAT" == "true" ]; then
   echo "iptables: masquerade from $ovpn_net to everywhere via $this_natdevice"
-  echo -n "Checking for existing iptables rule (it will say 'Bad rule' if no rule exists): "
+  echo -n "Checking for existing iptables rule: "
   iptables -t nat -C POSTROUTING -s "$ovpn_net" -o $this_natdevice -j MASQUERADE 2>&1 || \
   iptables -t nat -A POSTROUTING -s "$ovpn_net" -o $this_natdevice -j MASQUERADE
  fi

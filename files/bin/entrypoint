@@ -42,9 +42,9 @@ fi
 echo
 echo "$(date +'%F %T') - Generating client config ..."
 echo
-echo "---------- Start of client.ovpn ----------"
+echo "#---------- Start of client.ovpn ----------"
 /usr/local/bin/show-client-config
-echo "----------  End of client.ovpn  ----------"
+echo "#----------  End of client.ovpn  ----------"
 
 echo
 echo "$(date +'%F %T') - Starting NSCLD... (ignore any NSS_LDAP module warnings)"
