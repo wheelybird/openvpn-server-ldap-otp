@@ -31,9 +31,10 @@ if [ ! -d "$LOG_DIR" ]; then
  mkdir -p $LOG_DIR
 fi
 
-default_tls_ciphers="TLS-DHE-RSA-WITH-AES-256-CBC-SHA:TLS-DHE-RSA-WITH-AES-256-CBC-SHA256:TLS-DHE-RSA-WITH-AES-256-CBC-SHA256:TLS-DHE-RSA-WITH-CAMELLIA-256-CBC-SHA:TLS-DHE-RSA-WITH-AES-128-CBC-SHA"
+default_tls_ciphers="TLS-ECDHE-ECDSA-WITH-CHACHA20-POLY1305-SHA256:TLS-ECDHE-RSA-WITH-CHACHA20-POLY1305-SHA256:TLS-ECDHE-ECDSA-WITH-AES-128-GCM-SHA256:TLS-ECDHE-RSA-WITH-AES-128-GCM-SHA256"
 
 if [ "${OVPN_TLS_CIPHERS}x" == "x" ];             then export OVPN_TLS_CIPHERS=$default_tls_ciphers;      fi
+if [ "${OVPN_PORT}x" == "x" ];                    then export OVPN_PORT="1194";                           fi
 if [ "${OVPN_PROTOCOL}x" == "x" ];                then export OVPN_PROTOCOL="udp";                        fi
 if [ "${OVPN_INTERFACE_NAME}x" == "x" ];          then export OVPN_INTERFACE_NAME="tun";                  fi
 if [ "${OVPN_NETWORK}x" == "x" ];                 then export OVPN_NETWORK="10.50.50.0 255.255.255.0";    fi
@@ -63,6 +64,7 @@ if [ "$LOG_TO_STDOUT" == "true" ]; then
  LOG_FILE="/proc/1/fd/1"
 else
  LOG_FILE="${LOG_DIR}/openvpn.log"
+ touch $LOG_FILE
 fi
 
 

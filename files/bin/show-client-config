@@ -16,12 +16,12 @@ fi
 
 echo "
 client
+tls-client
 dev tun
 persist-key
 persist-tun
 remote-cert-tls server
 key-direction 1
-cipher AES-256-CBC
 auth SHA512
 proto tcp
 reneg-sec 0
@@ -64,7 +64,7 @@ echo "
 verb $OVPN_VERBOSITY
 
 <connection>
-remote $OVPN_SERVER_CN 1194 $OVPN_PROTOCOL
+remote $OVPN_SERVER_CN $OVPN_PORT $OVPN_PROTOCOL
 float
 nobind
 </connection>

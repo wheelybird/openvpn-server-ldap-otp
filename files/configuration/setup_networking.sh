@@ -32,7 +32,8 @@ if [ "${OVPN_ROUTES}x" != "x" ] ; then
     IFS=","
     to_masquerade="${this_net}/${this_cidr}"
     echo "iptables: masquerade from $ovpn_net to $to_masquerade via $this_natdevice"
-    iptables -t nat -C POSTROUTING -s "$ovpn_net" -d "$to_masquerade" -o $this_natdevice -j MASQUERADE || \
+    echo -n "Checking for existing iptables rule: "
+    iptables -t nat -C POSTROUTING -s "$ovpn_net" -d "$to_masquerade" -o $this_natdevice -j MASQUERADE 2>&1 || \
     iptables -t nat -A POSTROUTING -s "$ovpn_net" -d "$to_masquerade" -o $this_natdevice -j MASQUERADE
    fi
 
@@ -45,10 +46,11 @@ else
  #If no routes are set then we'll redirect all traffic from the client over the tunnel.
 
  echo "push \"redirect-gateway def1\"" >> /tmp/routes_config.txt
- echo "iptables: masquerade from $ovpn_net to everywhere via $this_natdevice"
 
  if [ "$OVPN_NAT" == "true" ]; then
-  iptables -t nat -C POSTROUTING -s "$ovpn_net" -o $this_natdevice -j MASQUERADE || \
+  echo "iptables: masquerade from $ovpn_net to everywhere via $this_natdevice"
+  echo -n "Checking for existing iptables rule: "
+  iptables -t nat -C POSTROUTING -s "$ovpn_net" -o $this_natdevice -j MASQUERADE 2>&1 || \
   iptables -t nat -A POSTROUTING -s "$ovpn_net" -o $this_natdevice -j MASQUERADE
  fi
 

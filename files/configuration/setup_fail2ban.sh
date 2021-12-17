@@ -1,11 +1,5 @@
 #!/bin/bash
 
-echo
-echo "*****************"
-echo " Fail2ban config "
-echo "*****************"
-echo
-
 cat <<EOF >> /etc/fail2ban/filter.d/openvpn.local
 [Definition]
 
@@ -38,7 +32,7 @@ cat <<EOF >> /etc/fail2ban/fail2ban.local
 logtarget = /proc/1/fd/1
 EOF
 
-touch $LOG_FILE
-chown openvpn:openvpn $LOG_FILE
 echo "Starting fail2ban..."
+touch /var/log/auth.log
+mkdir /var/run/fail2ban
 /usr/bin/fail2ban-server -xb --logtarget=stdout start
