@@ -52,6 +52,7 @@ Configuration is via environmental variables.  Here's a list, along with the def
  * `OVPN_VERBOSITY` (4):  The verbosity of OpenVPN's logs.
  * `OVPN_DEFAULT_SERVER` (true): If true, the OpenVPN `server <network> <netmask>` directive will be generated in the server configuration file. If `false`, you have to configure the server yourself by using `OVPN_EXTRA`.
  * `OVPN_EXTRA` (_undefined_): Additional configuration options which will be appended verbatim to the server configuration.
+ * `IPTABLES_EXTRA_FILE` (_undefined_): Path of a file containing additional network rules which will be appended to the iptables configuration. Uses the `iptables-save` / `iptables-restore` syntax.
 
  * `OVPN_MANAGEMENT_ENABLE` (false): Enable the TCP management interface on port 5555. This service allows raw TCP and telnet connections, check [the OpenVPN documentation](https://openvpn.net/community-resources/management-interface/) for further information.
  * `OVPN_MANAGEMENT_NOAUTH` (false): Allow access to the management interface without any authentication. Note that this option should only be enabled if the management port is not accessible to the internet.

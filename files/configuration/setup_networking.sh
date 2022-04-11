@@ -55,3 +55,15 @@ else
  fi
 
 fi
+
+# Append extra iptables rules from a file if specified
+if [ "${IPTABLES_EXTRA_FILE}x" != "x" ] ; then
+
+ if [ -f "$IPTABLES_EXTRA_FILE" ]; then
+  echo "IPTABLES_EXTRA_FILE was set, appending iptables rules from $IPTABLES_EXTRA_FILE"
+  iptables-restore -nv "$IPTABLES_EXTRA_FILE"
+ else
+  echo "IPTABLES_EXTRA_FILE was set but the specified file $IPTABLES_EXTRA_FILE cannot be found!"
+ fi
+
+fi
