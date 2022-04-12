@@ -56,6 +56,6 @@ if [ "${LDAP_BIND_USER_DN}x" != "x" ] ; then
 fi
 
 if [ "${LDAP_DISABLE_BIND_SEARCH}" == "true" ] ; then
-  echo "pam_authc_search NONE" >> $LDAP_CONFIG
+  echo "pam_authc_search none" >> $LDAP_CONFIG
 fi
 
