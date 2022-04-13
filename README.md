@@ -34,6 +34,7 @@ Configuration is via environmental variables.  Here's a list, along with the def
  * `LDAP_TLS` (false):  Changes (overrides) `LDAP_ENCRYPT_CONNECTION` to `starttls` (this setting is for backwards-compatibility with previous versions).
  * `LDAP_TLS_VALIDATE_CERT` (true):  Set to 'true' to ensure the TLS certificate can be validated.  'false' will ignore certificate issues - you might need this if you're using a self-signed certificate and not passing in the CA certificate.
  * `LDAP_TLS_CA_CERT` (_undefined_): The contents of the CA certificate file for the LDAP server.  You'll need this to enable TLS when using self-signed certificates.
+ * `LDAP_DISABLE_BIND_SEARCH` (false): Set to 'true' to stop nslcd searching for the user using their own credentials on login. By default nslcd does this as an extra verification step but some LDAP implementations disable searches for unprivileged users by default. Note that you should ensure your LDAP server handles invalid credentials properly before enabling this.
 
  * `ACTIVE_DIRECTORY_COMPAT_MODE` (false): Sets `LDAP_LOGIN_ATTRIBUTE` to `sAMAccountName` and `LDAP_FILTER` to `(objectClass=user)`, which allows LDAP lookups to work with Active Directory.  This will override any value you've manually set for those settings.
 
