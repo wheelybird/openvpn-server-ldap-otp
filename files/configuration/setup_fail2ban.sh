@@ -1,6 +1,6 @@
 #!/bin/bash
 
-cat <<EOF >> /etc/fail2ban/filter.d/openvpn.local
+cat <<EOF > /etc/fail2ban/filter.d/openvpn.local
 [Definition]
 
 # Example messages (other matched messages not seen in the testing server's logs):
@@ -17,7 +17,7 @@ ignoreregex =
 EOF
 
 
-cat <<EOF >> /etc/fail2ban/jail.d/openvpn.conf
+cat <<EOF > /etc/fail2ban/jail.d/openvpn.conf
 [openvpn]
 enabled  = $FAIL2BAN_ENABLED
 port     = 1194
@@ -27,12 +27,12 @@ logpath  = $LOG_FILE
 maxretry = $FAIL2BAN_MAXRETRIES
 EOF
 
-cat <<EOF >> /etc/fail2ban/fail2ban.local
+cat <<EOF > /etc/fail2ban/fail2ban.local
 [Definition]
 logtarget = /proc/1/fd/1
 EOF
 
 echo "Starting fail2ban..."
 touch /var/log/auth.log
-mkdir /var/run/fail2ban
+mkdir -p /var/run/fail2ban
 /usr/bin/fail2ban-server -xb --logtarget=stdout start
