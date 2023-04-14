@@ -34,5 +34,5 @@ EOF
 
 echo "Starting fail2ban..."
 touch /var/log/auth.log
-mkdir /var/run/fail2ban
+mkdir -p /var/run/fail2ban
 /usr/bin/fail2ban-server -xb --logtarget=stdout start
