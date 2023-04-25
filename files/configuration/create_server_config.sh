@@ -71,6 +71,7 @@ duplicate-cn
 tls-server
 tls-auth $PKI_DIR/ta.key 0 
 tls-cipher $OVPN_TLS_CIPHERS
+tls-ciphersuites $OVPN_TLS_CIPHERSUITES
 auth SHA512
 
 user nobody
