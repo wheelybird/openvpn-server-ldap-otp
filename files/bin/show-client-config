@@ -23,7 +23,7 @@ persist-tun
 remote-cert-tls server
 key-direction 1
 auth SHA512
-proto tcp
+proto $OVPN_PROTOCOL
 reneg-sec 0
 "
 
