@@ -23,6 +23,7 @@ persist-tun
 remote-cert-tls server
 key-direction 1
 auth SHA512
+auth-nocache
 proto $OVPN_PROTOCOL
 reneg-sec 0
 "
@@ -42,9 +43,15 @@ fi
 if [ "${OVPN_DNS_SERVERS}x" != "x" ] ; then
 
  echo "
-  ##Un-comment these lines in Ubuntu (and other Linux distros)
+  ##Un-comment these lines in most of Linux distros
   ##in order to set the DNS server:
 
+  ## If systemd-resolved is used
+  #script-security 2
+  #up /etc/openvpn/update-systemd-resolved
+  #down /etc/openvpn/update-systemd-resolved
+  
+  ## If not  
   #script-security 2
   #up /etc/openvpn/update-resolv-conf
   #down /etc/openvpn/update-resolv-conf
