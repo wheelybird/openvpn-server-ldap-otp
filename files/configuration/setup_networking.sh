@@ -5,8 +5,8 @@ if [ ! -c /dev/net/tun ]; then
   mknod /dev/net/tun c 10 200
 fi
 
-ovpn_net_net=$(echo "${OVPN_NETWORK}" | awk '{ print $1 }')
-ovpn_net_cidr=$(ipcalc -nb "${OVPN_NETWORK}" | grep ^Netmask | awk '{ print $NF }')
+ovpn_net_net=$(echo ${OVPN_NETWORK} | awk '{ print $1 }')
+ovpn_net_cidr=$(ipcalc -nb ${OVPN_NETWORK} | grep ^Netmask | awk '{ print $NF }')
 ovpn_net="${ovpn_net_net}/${ovpn_net_cidr}"
 
 export this_natdevice=$(route | grep '^default' | grep -o '[^ ]*$')
@@ -27,16 +27,16 @@ if [ "${OVPN_ROUTES}x" != "x" ]; then
 
     if [ "$OVPN_NAT" == "true" ]; then
       IFS=" "
-      this_net=$(echo "$this_route" | awk '{ print $1 }')
-      this_cidr=$(ipcalc -nb "$this_route" | grep ^Netmask | awk '{ print $NF }')
+      this_net=$(echo $this_route | awk '{ print $1 }')
+      this_cidr=$(ipcalc -nb $this_route | grep ^Netmask | awk '{ print $NF }')
       IFS=","
       to_masquerade="${this_net}/${this_cidr}"
       echo "iptables: masquerade from $ovpn_net to $to_masquerade via $this_natdevice"
-      echo -n "Checking for existing iptables rule: "
-      if iptables -t nat -C POSTROUTING -s "$ovpn_net" -d "$to_masquerade" -o "$this_natdevice" -j MASQUERADE 2>&1 > /dev/null; then
-        echo OK
+      echo -n "iptables: "
+      if iptables -t nat -C POSTROUTING -s "$ovpn_net" -d "$to_masquerade" -o "$this_natdevice" -j MASQUERADE > /dev/null 2>&1; then
+        echo "Rule already present. Skipping..."
       else
-        echo "MISSING. Creating rule..."
+        echo "Rule missing. Creating rule..."
         iptables -t nat -A POSTROUTING -s "$ovpn_net" -d "$to_masquerade" -o "$this_natdevice" -j MASQUERADE
       fi
     fi
@@ -53,11 +53,11 @@ else
 
   if [ "$OVPN_NAT" == "true" ]; then
     echo "iptables: masquerade from $ovpn_net to everywhere via $this_natdevice"
-    echo -n "Checking for existing iptables rule: "
-    if iptables -t nat -C POSTROUTING -s "$ovpn_net" -o "$this_natdevice" -j MASQUERADE 2>&1 > /dev/null; then
-      echo "OK"
+    echo -n "iptables: "
+    if iptables -t nat -C POSTROUTING -s "$ovpn_net" -o "$this_natdevice" -j MASQUERADE > /dev/null 2>&1; then
+      echo "Rule already present. Skipping..."
     else
-      echo "MISSING. Creating rule..."
+      echo "Rule missing. Creating rule..."
       iptables -t nat -A POSTROUTING -s "$ovpn_net" -o "$this_natdevice" -j MASQUERADE
     fi
   fi
