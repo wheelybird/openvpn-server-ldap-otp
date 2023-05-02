@@ -1,8 +1,12 @@
-FROM ubuntu:20.04
+FROM ubuntu:22.04
 
 MAINTAINER Brian Lycett <brian@wheelybird.com>
 
-RUN apt-get update && \
+RUN apt-get update && apt-get install -y --no-install-recommends wget ca-certificates gnupg && \
+    wget https://swupdate.openvpn.net/repos/repo-public.gpg && \
+    apt-key add repo-public.gpg && \
+    echo 'deb https://build.openvpn.net/debian/openvpn/stable jammy main' > /etc/apt/sources.list.d/openvpn.list && \
+    apt-get update && \
     DEBIAN_FRONTEND=noninteractive \
     apt-get install -y --no-install-recommends \
             easy-rsa \

@@ -71,6 +71,7 @@ duplicate-cn
 tls-server
 tls-auth $PKI_DIR/ta.key 0 
 tls-cipher $OVPN_TLS_CIPHERS
+tls-ciphersuites $OVPN_TLS_CIPHERSUITES
 auth SHA512
 
 user nobody
@@ -91,7 +92,7 @@ Part02
 if [ "${USE_CLIENT_CERTIFICATE}" != "true" ] ; then
 
 cat <<Part03 >>$CONFIG_FILE
-plugin $(dpkg-query -L openvpn | grep openvpn-plugin-auth-pam.so) openvpn
+plugin $(dpkg-query -L openvpn | grep openvpn-plugin-auth-pam.so | head -n1) openvpn
 verify-client-cert optional
 username-as-common-name
 
