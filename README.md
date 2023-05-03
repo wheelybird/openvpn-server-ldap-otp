@@ -4,10 +4,9 @@ This will create an OpenVPN server. You can either use LDAP for authentication (
 The container will automatically generate the certificates on the first run (using a 2048 bit key) which means that *the initial run could take several minutes* whilst keys are generated.  The client configuration will be output in the logs.
 A volume is created for data persistence.
 
-### A note about the VORACLE attack
+### A note about compression
 
-The [VORACLE ATTACK](https://community.openvpn.net/openvpn/wiki/VORACLE) uses a vulnerability in OpenVPN's traffic compression.   **It is highly recommended that you disable compression** using `OVPN_ENABLE_COMPRESSION=false`.  
-Compression is enabled by default for backwards-compatibility - if either the client or server's configuration has `comp-lzo` set and the other doesn't then the tunnel will break.  Compression was set without an option to disable it in previous versions of this container, so all previous client configurations will have it enabled.
+Compression is no longer enabled by default for backwards-compatibility.  However the backwards-compatible option `compress migrate` has been added to the server configuration.  This simply allows the server to ignore the client's request for compression.  More information on why compression is disabled can be found [on the OpenVPN website](https://community.openvpn.net/openvpn/wiki/Compression).
 
 ## Configuration
 
@@ -21,6 +20,11 @@ Configuration is via environmental variables.  Here's a list, along with the def
 
  * `LDAP_URI`: The URI used to connect to the LDAP server.  e.g. `ldap://ldap.example.org`.
  * `LDAP_BASE_DN`: The base DN used for LDAP lookups. e.g. `dc=example,dc=org`.
+
+---
+**Tip**: The LDAP authentication module authenticates the user by searching for their LDAP entry and if it can't return that record authentication fails.  Many LDAP servers don't allow anonymous binds/searches, so set `LDAP_BIND_USER_DN` (and `LDAP_BIND_USER_PASS`) as a user that has permission to search the directory.
+
+---
 
 ### Optional settings:
 
@@ -49,7 +53,6 @@ Configuration is via environmental variables.  Here's a list, along with the def
  * `OVPN_DNS_SERVERS` (_undefined_):  A comma-separated list of DNS nameservers to push to the client.  Set this if the remote network has its own DNS or if you route all traffic through the VPN and the remote side blocks access to external name servers.  Note that not all OpenVPN clients will automatically use these nameservers.  e.g. `8.8.8.8,8.8.4.4`
  * `OVPN_DNS_SEARCH_DOMAIN` (_undefined_):  If using the remote network's DNS server then push the search domain (or domains) to the client.  This will allow the client to lookup by hostnames rather than fully-qualified domain names.  i.e. setting this to `example.org` will allow `ping remotehost` instead of `ping remotehost.example.org`.  Separate multiple domains with commas, e.g. `example.org,wheelybird.com,test.net`.
  * `OVPN_REGISTER_DNS` (false): Include `register-dns` in the client config, which is a Windows client option that can force some clients to load the DNS configuration.
- * `OVPN_ENABLE_COMPRESSION` (true): Enable this to add `comp-lzo` to the server and client configuration.  This will compress traffic going through the VPN tunnel.
  * `OVPN_IDLE_TIMEOUT` (_undefined_): The number of seconds before an idle VPN connection will be disconnected.  This also prevents the client reconnecting due to a keepalive heartbeat timeout.  You might want to use this setting for compliance reasons (e.g. PCI_DSS).  See [Keepalive settings](#keepalive_settings) for more information.
  * `OVPN_VERBOSITY` (4):  The verbosity of OpenVPN's logs.
  * `OVPN_DEFAULT_SERVER` (true): If true, the OpenVPN `server <network> <netmask>` directive will be generated in the server configuration file. If `false`, you have to configure the server yourself by using `OVPN_EXTRA`.
@@ -83,8 +86,10 @@ docker run \
            -e "OVPN_SERVER_CN=myserver.mycompany.com" \
            -e "LDAP_URI=ldap://ldap.mycompany.com" \
            -e "LDAP_BASE_DN=dc=mycompany,dc=com" \
+           -e "LDAP_BIND_USER_DN=cn=example,dc=mycompany,dc=com" \
+           -e "LDAP_BIND_USER_PASS=examplepass" \
            --cap-add=NET_ADMIN \
-           wheelybird/openvpn-ldap-otp:v1.6
+           wheelybird/openvpn-ldap-otp:v1.7
 ```
 
 * `--cap-add=NET_ADMIN` is necessary; the container needs to create the tunnel device and create iptable rules.

@@ -39,9 +39,7 @@ if [ "${OVPN_DNS_SEARCH_DOMAIN}x" != "x" ]; then
  done
 fi
 
-if [ "${OVPN_ENABLE_COMPRESSION}" == "true" ]; then
-  echo "comp-lzo" >> $CONFIG_FILE
-fi
+echo "compress migrate" >> $CONFIG_FILE
 
 if [ "${OVPN_IDLE_TIMEOUT}x" != "x" ] && [ "${OVPN_IDLE_TIMEOUT##*[!0-9]*}" ] ; then
   cat <<TIMEOUTS >> $CONFIG_FILE

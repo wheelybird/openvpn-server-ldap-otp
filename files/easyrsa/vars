@@ -1,5 +1,4 @@
 set_var EASYRSA	"/opt/easyrsa"
-set_var EASYRSA_SSL_CONF "/opt/easyrsa/openssl-1.0.cnf"
 set_var EASYRSA_OPENSSL	"openssl"
 set_var EASYRSA_PKI		"/etc/openvpn/pki"
 
@@ -18,5 +17,3 @@ set_var EASYRSA_CA_EXPIRE	3650
 set_var EASYRSA_CERT_EXPIRE	3650
 
 set_var EASYRSA_CRL_DAYS	180
-set_var EASYRSA_SSL_CONF	"/opt/openssl-1.0.cnf"
-

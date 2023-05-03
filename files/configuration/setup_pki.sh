@@ -1,7 +1,7 @@
 if [ ! -f "$PKI_DIR/issued/$OVPN_SERVER_CN.crt" ] || [ "$REGENERATE_CERTS" == 'true' ]; then
 
  echo "easyrsa: creating server certs"
- sed -i 's/^RANDFILE/#RANDFILE/g' /opt/easyrsa/openssl-1.0.cnf
+ sed -i 's/^RANDFILE/#RANDFILE/g' /opt/easyrsa/openssl-easyrsa.cnf
  EASYCMD="/opt/easyrsa/easyrsa --vars=/opt/easyrsa/vars"
  $EASYCMD init-pki
 

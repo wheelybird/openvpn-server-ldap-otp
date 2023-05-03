@@ -28,10 +28,6 @@ proto $OVPN_PROTOCOL
 reneg-sec 0
 "
 
-if [ "${OVPN_ENABLE_COMPRESSION}" == "true" ]; then
- echo "comp-lzo"
-fi
-
 if [ "${OVPN_ROUTES}x" == "x" ] ; then
  echo "redirect-gateway def1"
 fi
@@ -43,15 +39,15 @@ fi
 if [ "${OVPN_DNS_SERVERS}x" != "x" ] ; then
 
  echo "
-  ##Un-comment these lines in most of Linux distros
+  ##Un-comment these lines when using Linux
   ##in order to set the DNS server:
 
-  ## If systemd-resolved is used
+  ## If your Linux distro uses systemd-resolved:
   #script-security 2
   #up /etc/openvpn/update-systemd-resolved
   #down /etc/openvpn/update-systemd-resolved
   
-  ## If not  
+  ## Otherwise:
   #script-security 2
   #up /etc/openvpn/update-resolv-conf
   #down /etc/openvpn/update-resolv-conf
