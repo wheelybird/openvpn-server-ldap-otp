@@ -25,7 +25,7 @@ if [ "${OVPN_ROUTES}x" != "x" ] ; then
    echo "routes: adding route $this_route to server config"
    echo "push \"route $this_route\"" >> /tmp/routes_config.txt
 
-   if [ "$OVPN_NAT" == "true" ]; then
+   if [ "$OVPN_NAT" != "true" ]; then
     IFS=" "
     this_net=`echo $this_route | awk '{ print $1 }'`
     this_cidr=`ipcalc -nb $this_route | grep ^Netmask | awk '{ print $NF }'`
