@@ -17,6 +17,7 @@ google-authenticator \
                      --time-based \
                      --disallow-reuse \
                      --force \
+                     --no-confirm \
                      --rate-limit=3 \
                      --rate-time=30 \
                      --window-size=3 \
