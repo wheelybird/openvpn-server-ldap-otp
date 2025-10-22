@@ -59,3 +59,9 @@ if [ "${LDAP_DISABLE_BIND_SEARCH}" == "true" ] ; then
   echo "pam_authc_search none" >> $LDAP_CONFIG
 fi
 
+# Configure NSSwitch to use LDAP for user/group resolution
+echo "ldap: configuring NSSwitch for LDAP"
+sed -i 's/^\(passwd:\s*files\)$/\1 ldap/' /etc/nsswitch.conf
+sed -i 's/^\(group:\s*files\)$/\1 ldap/' /etc/nsswitch.conf
+sed -i 's/^\(shadow:\s*files\)$/\1 ldap/' /etc/nsswitch.conf
+

@@ -51,7 +51,6 @@ echo "$(date +'%F %T') - Starting NSCLD... (ignore any NSS_LDAP module warnings)
 echo
 nslcd
 
-
 echo
 echo "$(date +'%F %T') - Running OpenVPN..."
 echo

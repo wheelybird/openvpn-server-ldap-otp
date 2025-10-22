@@ -78,7 +78,6 @@ $(cat $PKI_DIR/ca.crt)
 <tls-auth>
 $(cat $PKI_DIR/ta.key)
 </tls-auth>
-key-direction 1
 "
 
 if [ "${USE_CLIENT_CERTIFICATE}" == "true" ] ; then

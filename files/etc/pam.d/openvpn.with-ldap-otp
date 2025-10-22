@@ -1,0 +1,6 @@
+#%PAM-1.0
+
+auth required pam_ldap_totp.so forward_pass
+auth required pam_ldap.so use_first_pass
+
+account sufficient pam_permit.so

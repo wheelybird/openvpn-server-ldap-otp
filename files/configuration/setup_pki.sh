@@ -11,7 +11,8 @@ if [ ! -f "$PKI_DIR/issued/$OVPN_SERVER_CN.crt" ] || [ "$REGENERATE_CERTS" == 't
  $EASYCMD gen-dh
  openvpn --genkey secret $PKI_DIR/ta.key
 
- $EASYCMD build-server-full "$OVPN_SERVER_CN" nopass
+ $EASYCMD gen-req "$OVPN_SERVER_CN" nopass
+ $EASYCMD sign-req server "$OVPN_SERVER_CN"
 
  if [ "${USE_CLIENT_CERTIFICATE}" == "true" ] ; then
   echo "easyrsa: creating client certs"

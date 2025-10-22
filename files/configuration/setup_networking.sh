@@ -13,12 +13,12 @@ export this_natdevice=$(route | grep '^default' | grep -o '[^ ]*$')
 
 #Set up routes to push to the client.
 
+echo "" >/tmp/routes_config.txt
+
 if [ "${OVPN_ROUTES}x" != "x" ]; then
 
   IFS=","
   read -r -a route_list <<<"$OVPN_ROUTES"
-
-  echo "" >/tmp/routes_config.txt
 
   for this_route in ${route_list[@]}; do
 

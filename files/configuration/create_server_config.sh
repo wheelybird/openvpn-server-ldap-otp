@@ -88,14 +88,13 @@ reneg-sec 0
 Part02
 
 if [ "${USE_CLIENT_CERTIFICATE}" != "true" ] ; then
-
-cat <<Part03 >>$CONFIG_FILE
+  # Use PAM plugin for authentication
+  cat <<Part03 >>$CONFIG_FILE
 plugin $(dpkg-query -L openvpn | grep openvpn-plugin-auth-pam.so | head -n1) openvpn
 verify-client-cert optional
 username-as-common-name
 
 Part03
-
 fi
 
 if [ "${OVPN_MANAGEMENT_ENABLE}" == "true" ]; then
