@@ -50,9 +50,9 @@ If `ENABLE_OTP=true` AND `ENABLE_PAM_LDAP_OTP=true`, TOTP secrets are stored in 
   - `LDAP_TOTP_ATTRIBUTE=totpSecret` (default)
 - **Authentication:** LDAP password + LDAP-stored TOTP (append mode)
 - **PAM Configuration:** `/etc/pam.d/openvpn.with-ldap-otp`
-- **PAM Modules:** `pam_ldap_totp.so` + `pam_ldap.so`
-- **PAM Module:** https://github.com/wheelybird/ldap-totp-pam
-- **Use Case:** Centralized MFA management in LDAP directory
+- **PAM Modules:** `pam_ldap_totp_auth.so` (standalone module)
+- **PAM Module:** https://github.com/wheelybird/pam-ldap-totp-auth
+- **Use Case:** Centralised MFA management in LDAP directory
 
 **How it works:**
 - Users concatenate password and OTP code: `mypassword123456`
@@ -178,7 +178,7 @@ docker run \
 
 ### PAM Module Configuration
 
-When using LDAP-backed TOTP (`ENABLE_PAM_LDAP_OTP=true`), the PAM module can be configured via `/etc/security/pam_ldap_totp.conf`:
+When using LDAP-backed TOTP (`ENABLE_PAM_LDAP_OTP=true`), the PAM module can be configured via `/etc/security/pam_ldap_totp_auth.conf`:
 
 ```ini
 # TOTP mode (only append mode supported in OpenVPN)
@@ -202,7 +202,7 @@ enforcement_mode graceful
 debug false
 ```
 
-See the [PAM module documentation](https://github.com/wheelybird/ldap-totp-pam) for all configuration options.
+See the [PAM module documentation](https://github.com/wheelybird/pam-ldap-totp-auth) for all configuration options.
 
 ### Environment Variables for LDAP-Backed TOTP
 
@@ -219,7 +219,7 @@ See the [PAM module documentation](https://github.com/wheelybird/ldap-totp-pam) 
 This OpenVPN container integrates with several related projects for complete LDAP-backed MFA:
 
 - **[LDAP TOTP Schema](https://github.com/wheelybird/ldap-totp-schema)** - LDAP schema for TOTP attributes
-- **[LDAP TOTP PAM](https://github.com/wheelybird/ldap-totp-pam)** - PAM module for LDAP-backed TOTP (built from source)
+- **[LDAP TOTP PAM](https://github.com/wheelybird/pam-ldap-totp-auth)** - PAM module for LDAP-backed TOTP (built from source)
 - **[LDAP User Manager](https://github.com/wheelybird/ldap-user-manager)** - Web UI for self-service MFA enrolment
 
 ## Related Files
@@ -227,11 +227,11 @@ This OpenVPN container integrates with several related projects for complete LDA
 - **PAM Configurations:** `files/etc/pam.d/`
   - `openvpn.without-otp` - LDAP only
   - `openvpn.with-otp` - LDAP + google-authenticator
-  - `openvpn.with-ldap-otp` - LDAP + pam_ldap_totp
+  - `openvpn.with-ldap-otp` - LDAP + pam_ldap_totp_auth (standalone module)
 
 - **Setup Script:** `files/configuration/setup_otp.sh`
   - Contains the logic for selecting PAM configuration
 
-- **PAM Module Config:** `/etc/security/pam_ldap_totp.conf`
-  - Configuration for pam_ldap_totp.so module
+- **PAM Module Config:** `/etc/security/pam_ldap_totp_auth.conf`
+  - Configuration for pam_ldap_totp_auth.so module
   - Controls TOTP parameters, grace period, etc.

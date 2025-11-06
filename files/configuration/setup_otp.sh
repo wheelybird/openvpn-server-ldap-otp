@@ -1,55 +1,114 @@
+# Configure the standalone PAM module for all authentication modes
+# The module is used in three scenarios:
+# 1. LDAP-backed TOTP (ENABLE_PAM_LDAP_OTP=true): totp_enabled=true, reads secrets from LDAP
+# 2. File-based TOTP (ENABLE_OTP=true, ENABLE_PAM_LDAP_OTP!=true): totp_enabled=false, just LDAP auth
+# 3. LDAP-only (ENABLE_OTP!=true): totp_enabled=false, just LDAP auth
+
+# Configure LDAP connection settings from environment variables
+configure_ldap_settings() {
+  if [ -n "$LDAP_URI" ]; then
+    sed -i "s|^ldap_uri .*|ldap_uri $LDAP_URI|" /etc/security/pam_ldap_totp_auth.conf
+  fi
+
+  if [ -n "$LDAP_BASE_DN" ]; then
+    sed -i "s|^ldap_base .*|ldap_base $LDAP_BASE_DN|" /etc/security/pam_ldap_totp_auth.conf
+  fi
+
+  if [ -n "$LDAP_BIND_USER_DN" ]; then
+    sed -i "s|^ldap_bind_dn.*|ldap_bind_dn $LDAP_BIND_USER_DN|" /etc/security/pam_ldap_totp_auth.conf
+  fi
+
+  if [ -n "$LDAP_BIND_USER_PASS" ]; then
+    sed -i "s|^ldap_bind_password.*|ldap_bind_password $LDAP_BIND_USER_PASS|" /etc/security/pam_ldap_totp_auth.conf
+  fi
+
+  if [ -n "$LDAP_LOGIN_ATTRIBUTE" ]; then
+    sed -i "s|^login_attribute .*|login_attribute $LDAP_LOGIN_ATTRIBUTE|" /etc/security/pam_ldap_totp_auth.conf
+  fi
+
+  # Configure TLS settings
+  if [ "$LDAP_ENCRYPT_CONNECTION" == "starttls" ]; then
+    sed -i "s|^tls_mode .*|tls_mode starttls|" /etc/security/pam_ldap_totp_auth.conf
+  elif [ "$LDAP_ENCRYPT_CONNECTION" == "on" ]; then
+    sed -i "s|^tls_mode .*|tls_mode ldaps|" /etc/security/pam_ldap_totp_auth.conf
+  elif [ "$LDAP_ENCRYPT_CONNECTION" == "off" ]; then
+    sed -i "s|^tls_mode .*|tls_mode none|" /etc/security/pam_ldap_totp_auth.conf
+  fi
+
+  if [ "$LDAP_TLS_VALIDATE_CERT" == "false" ]; then
+    sed -i "s|^tls_verify_cert .*|tls_verify_cert false|" /etc/security/pam_ldap_totp_auth.conf
+  fi
+
+  if [ -n "$LDAP_TLS_CA_CERT" ]; then
+    # Write CA cert to file
+    echo "$LDAP_TLS_CA_CERT" > /etc/openvpn/ldap-ca.crt
+    sed -i "s|^tls_ca_cert_file .*|tls_ca_cert_file /etc/openvpn/ldap-ca.crt|" /etc/security/pam_ldap_totp_auth.conf
+  fi
+
+  # Enable debug logging if specified
+  if [ "$OTP_LDAP_DEBUG" == "true" ] || [ "$DEBUG" == "true" ]; then
+    sed -i "s/^debug .*/debug true/" /etc/security/pam_ldap_totp_auth.conf
+    echo "pam_ldap_totp_auth: debug logging enabled"
+  fi
+}
+
 #Set up PAM for openvpn - with OTP if it's set as enabled
 if [ "$ENABLE_OTP" == "true" ]; then
   if [ "$ENABLE_PAM_LDAP_OTP" == "true" ]; then
-    echo "pam: enabling LDAP & LDAP-backed OTP"
+    # Mode 1: LDAP-backed TOTP
+    echo "pam: enabling LDAP-backed TOTP (standalone module with totp_enabled=true)"
     cp -f /opt/pam.d/openvpn.with-ldap-otp /etc/pam.d/openvpn
 
-    # PAM LDAP TOTP configuration is already installed at /etc/security/pam_ldap_totp.conf
-    # (copied during Docker build)
+    # Configure LDAP settings
+    configure_ldap_settings
 
-    # Configure TOTP mode based on TOTP_MODE environment variable
-    # append (default) - password+OTP concatenated
-    # challenge - server prompts for OTP after password (not supported by OpenVPN clients)
+    # Enable TOTP validation
+    sed -i "s/^totp_enabled .*/totp_enabled true/" /etc/security/pam_ldap_totp_auth.conf
+
+    # Configure TOTP-specific settings
     if [ -n "$TOTP_MODE" ]; then
-      sed -i "s/^totp_mode .*/totp_mode $TOTP_MODE/" /etc/security/pam_ldap_totp.conf
+      sed -i "s/^totp_mode .*/totp_mode $TOTP_MODE/" /etc/security/pam_ldap_totp_auth.conf
     fi
 
-    # Configure TOTP attribute if specified
     if [ -n "$LDAP_TOTP_ATTRIBUTE" ]; then
-      sed -i "s/^totp_attribute .*/totp_attribute $LDAP_TOTP_ATTRIBUTE/" /etc/security/pam_ldap_totp.conf
+      sed -i "s/^totp_attribute .*/totp_attribute $LDAP_TOTP_ATTRIBUTE/" /etc/security/pam_ldap_totp_auth.conf
     fi
 
-    # Configure TOTP prefix if specified
     if [ -n "$LDAP_TOTP_PREFIX" ]; then
-      sed -i "s/^totp_prefix .*/totp_prefix $LDAP_TOTP_PREFIX/" /etc/security/pam_ldap_totp.conf
+      sed -i "s/^totp_prefix .*/totp_prefix $LDAP_TOTP_PREFIX/" /etc/security/pam_ldap_totp_auth.conf
     fi
 
-    # Configure grace period if specified
     if [ -n "$MFA_GRACE_PERIOD_DAYS" ]; then
-      sed -i "s/^grace_period_days .*/grace_period_days $MFA_GRACE_PERIOD_DAYS/" /etc/security/pam_ldap_totp.conf
+      sed -i "s/^grace_period_days .*/grace_period_days $MFA_GRACE_PERIOD_DAYS/" /etc/security/pam_ldap_totp_auth.conf
     fi
 
-    # Configure enforcement mode if specified
     if [ -n "$MFA_ENFORCEMENT_MODE" ]; then
-      sed -i "s/^enforcement_mode .*/enforcement_mode $MFA_ENFORCEMENT_MODE/" /etc/security/pam_ldap_totp.conf
+      sed -i "s/^enforcement_mode .*/enforcement_mode $MFA_ENFORCEMENT_MODE/" /etc/security/pam_ldap_totp_auth.conf
     fi
 
-    # Configure setup service DN if specified
     if [ -n "$MFA_SETUP_SERVICE_DN" ]; then
-      sed -i "s|^setup_service_dn .*|setup_service_dn $MFA_SETUP_SERVICE_DN|" /etc/security/pam_ldap_totp.conf
+      sed -i "s|^setup_service_dn .*|setup_service_dn $MFA_SETUP_SERVICE_DN|" /etc/security/pam_ldap_totp_auth.conf
     fi
 
-    # Enable debug logging if specified
-    # Accepts: OTP_LDAP_DEBUG=true or DEBUG=true (for backwards compatibility)
-    if [ "$OTP_LDAP_DEBUG" == "true" ] || [ "$DEBUG" == "true" ]; then
-      sed -i "s/^debug .*/debug true/" /etc/security/pam_ldap_totp.conf
-      echo "pam_ldap_totp: debug logging enabled"
-    fi
   else
-    echo "pam: enabling LDAP & file-based OTP"
+    # Mode 2: File-based TOTP (google-authenticator + LDAP password auth)
+    echo "pam: enabling file-based TOTP (google-authenticator + standalone module with totp_enabled=false)"
     cp -f /opt/pam.d/openvpn.with-otp /etc/pam.d/openvpn
+
+    # Configure LDAP settings
+    configure_ldap_settings
+
+    # Disable TOTP validation (module only does LDAP auth)
+    sed -i "s/^totp_enabled .*/totp_enabled false/" /etc/security/pam_ldap_totp_auth.conf
   fi
 else
-  echo "pam: enabling LDAP"
+  # Mode 3: LDAP-only (no MFA)
+  echo "pam: enabling LDAP-only authentication (standalone module with totp_enabled=false)"
   cp -f /opt/pam.d/openvpn.without-otp /etc/pam.d/openvpn
+
+  # Configure LDAP settings
+  configure_ldap_settings
+
+  # Disable TOTP validation
+  sed -i "s/^totp_enabled .*/totp_enabled false/" /etc/security/pam_ldap_totp_auth.conf
 fi

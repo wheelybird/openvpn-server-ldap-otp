@@ -1,6 +1,8 @@
 #%PAM-1.0
 
-auth required pam_ldap_totp.so forward_pass
-auth required pam_ldap.so use_first_pass
+# Standalone LDAP+TOTP authentication module
+# Single module performs both password authentication (via LDAP bind)
+# and TOTP validation (reading secret from LDAP)
+auth required pam_ldap_totp_auth.so
 
 account sufficient pam_permit.so

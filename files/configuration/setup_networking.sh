@@ -49,7 +49,7 @@ else
 
   #If no routes are set then we'll redirect all traffic from the client over the tunnel.
 
-  echo "push \"redirect-gateway def1\"" >>/tmp/routes_config.txt
+  echo "push \"redirect-gateway def1 bypass-dhcp\"" >>/tmp/routes_config.txt
 
   if [ "$OVPN_NAT" == "true" ]; then
     echo "iptables: masquerade from $ovpn_net to everywhere via $this_natdevice"

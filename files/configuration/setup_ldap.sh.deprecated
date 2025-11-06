@@ -1,6 +1,15 @@
+# WARNING: This script is LEGACY ONLY
+# It configures /etc/nslcd.conf for pam_ldap.so (file-based OTP mode)
+# However, nslcd is NOT installed in this container build
+#
+# The standalone PAM module (ENABLE_PAM_LDAP_OTP=true) does NOT use this file
+# It uses /etc/security/pam_ldap_totp_auth.conf configured in setup_otp.sh
+#
+# This script is only called if ENABLE_PAM_LDAP_OTP != true
+
 LDAP_CONFIG="/etc/nslcd.conf"
 
-echo "ldap: creating LDAP configuration"
+echo "ldap: creating LDAP configuration (legacy mode - file-based OTP)"
 
 cat <<EoLDAP >$LDAP_CONFIG
 

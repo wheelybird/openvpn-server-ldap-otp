@@ -63,18 +63,27 @@ fi
 
 cat <<Part02 >>$CONFIG_FILE
 
+# Network topology
+topology subnet
+
 # As we're using LDAP, each client can use the same certificate
 duplicate-cn
 
+# Modern cipher configuration for OpenVPN 2.5+
+data-ciphers AES-256-GCM:AES-128-GCM:CHACHA20-POLY1305:AES-256-CBC
+cipher AES-256-GCM
+
 tls-server
-tls-auth $PKI_DIR/ta.key 0 
+tls-auth $PKI_DIR/ta.key 0
 tls-cipher $OVPN_TLS_CIPHERS
 tls-ciphersuites $OVPN_TLS_CIPHERSUITES
 auth SHA512
 
+# Security: drop privileges after startup
 user nobody
 group nogroup
 
+# Persist keys and tun device to prevent restart failures
 persist-key
 persist-tun
 

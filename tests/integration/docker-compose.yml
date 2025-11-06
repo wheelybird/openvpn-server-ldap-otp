@@ -1,0 +1,60 @@
+version: '3.8'
+
+services:
+  openldap:
+    image: osixia/openldap:1.5.0
+    container_name: ovpn-test-ldap
+    hostname: openldap
+    environment:
+      LDAP_ORGANISATION: "Test Inc"
+      LDAP_DOMAIN: "test.local"
+      LDAP_ADMIN_PASSWORD: "admin123"
+      LDAP_CONFIG_PASSWORD: "config123"
+      LDAP_RFC2307BIS_SCHEMA: "true"
+      LDAP_TLS: "false"
+    volumes:
+      - /tmp/openvpn-test/ldap-data:/var/lib/ldap
+      - /tmp/openvpn-test/ldap-config:/etc/ldap/slapd.d
+      - ./ldap-init:/ldap-init
+    ports:
+      - "11389:389"
+    networks:
+      - ovpn-test-net
+    healthcheck:
+      test: ["CMD", "ldapsearch", "-x", "-H", "ldap://localhost:389", "-b", "dc=test,dc=local", "-D", "cn=admin,dc=test,dc=local", "-w", "admin123"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  openvpn:
+    build:
+      context: ../..
+      dockerfile: Dockerfile
+    container_name: ovpn-test-server
+    hostname: openvpn
+    depends_on:
+      openldap:
+        condition: service_healthy
+    cap_add:
+      - NET_ADMIN
+    devices:
+      - /dev/net/tun
+    environment:
+      LDAP_URI: "ldap://openldap:389"
+      LDAP_BASE_DN: "dc=test,dc=local"
+      LDAP_BIND_USER_DN: "cn=admin,dc=test,dc=local"
+      LDAP_BIND_USER_PASS: "admin123"
+      TOTP_MODE: "append"
+    ports:
+      - "11194:1194/udp"
+    networks:
+      - ovpn-test-net
+    volumes:
+      - /tmp/openvpn-test/openvpn-config:/etc/openvpn
+      - ./test-scripts:/test
+      - ./ldap-init:/ldap-init
+    command: tail -f /dev/null  # Keep container running for testing
+
+networks:
+  ovpn-test-net:
+    driver: bridge

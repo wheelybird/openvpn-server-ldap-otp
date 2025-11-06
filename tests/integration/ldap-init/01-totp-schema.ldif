@@ -1,0 +1,35 @@
+# TOTP Schema for test environment
+# Simplified version for testing only
+
+dn: cn=totp,cn=schema,cn=config
+objectClass: olcSchemaConfig
+cn: totp
+olcAttributeTypes: ( 1.3.6.1.4.1.99999.1.1 
+  NAME 'totpSecret' 
+  DESC 'TOTP secret key (Base32)'
+  EQUALITY caseIgnoreMatch
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.15
+  SINGLE-VALUE )
+olcAttributeTypes: ( 1.3.6.1.4.1.99999.1.2
+  NAME 'totpScratchCode'
+  DESC 'TOTP scratch/backup codes'
+  EQUALITY caseIgnoreMatch
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 )
+olcAttributeTypes: ( 1.3.6.1.4.1.99999.1.3
+  NAME 'totpStatus'
+  DESC 'TOTP enrollment status'
+  EQUALITY caseIgnoreMatch
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.15
+  SINGLE-VALUE )
+olcAttributeTypes: ( 1.3.6.1.4.1.99999.1.4
+  NAME 'totpEnrolledDate'
+  DESC 'Date TOTP was enrolled'
+  EQUALITY generalizedTimeMatch
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.24
+  SINGLE-VALUE )
+olcObjectClasses: ( 1.3.6.1.4.1.99999.2.1
+  NAME 'totpUser'
+  DESC 'User with TOTP authentication'
+  SUP top
+  AUXILIARY
+  MAY ( totpSecret $ totpScratchCode $ totpStatus $ totpEnrolledDate ) )

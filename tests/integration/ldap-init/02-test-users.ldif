@@ -1,0 +1,97 @@
+# Test Users for OpenVPN Authentication Tests
+#
+# Test User Credentials:
+# 1. passonly - Password-only authentication (no MFA)
+#    Password: test123
+#
+# 2. totpuser - Password + TOTP authentication
+#    Password: test123
+#    TOTP Secret: JBSWY3DPEHPK3PXP (Base32: "Hello!")
+#
+# 3. scratchuser - Password + Scratch codes
+#    Password: test123
+#    Scratch Codes: 12345678, 87654321, 99999999
+#
+# 4. googleuser - Password + Google Authenticator (file-based)
+#    Password: test123
+#    Will use .google_authenticator file
+
+# Create organizational units
+dn: ou=people,dc=test,dc=local
+objectClass: organizationalUnit
+ou: people
+
+dn: ou=groups,dc=test,dc=local
+objectClass: organizationalUnit
+ou: groups
+
+# Test User 1: Password-only (no MFA)
+dn: uid=passonly,ou=people,dc=test,dc=local
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+uid: passonly
+cn: Pass Only
+sn: User
+givenName: Pass
+mail: passonly@test.local
+uidNumber: 10001
+gidNumber: 10001
+homeDirectory: /home/passonly
+loginShell: /bin/bash
+
+# Test User 2: Password + TOTP
+dn: uid=totpuser,ou=people,dc=test,dc=local
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+objectClass: totpUser
+uid: totpuser
+cn: TOTP User
+sn: User
+givenName: TOTP
+mail: totpuser@test.local
+uidNumber: 10002
+gidNumber: 10002
+homeDirectory: /home/totpuser
+loginShell: /bin/bash
+totpSecret: JBSWY3DPEHPK3PXP
+totpStatus: active
+totpEnrolledDate: 20250101000000Z
+
+# Test User 3: Password + Scratch Codes
+dn: uid=scratchuser,ou=people,dc=test,dc=local
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+objectClass: totpUser
+uid: scratchuser
+cn: Scratch User
+sn: User
+givenName: Scratch
+mail: scratchuser@test.local
+uidNumber: 10003
+gidNumber: 10003
+homeDirectory: /home/scratchuser
+loginShell: /bin/bash
+totpSecret: JBSWY3DPEHPK3PXP
+totpStatus: active
+totpEnrolledDate: 20250101000000Z
+totpScratchCode: 12345678
+totpScratchCode: 87654321
+totpScratchCode: 99999999
+
+# Test User 4: Google Authenticator (file-based legacy)
+dn: uid=googleuser,ou=people,dc=test,dc=local
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+uid: googleuser
+cn: Google User
+sn: User
+givenName: Google
+mail: googleuser@test.local
+uidNumber: 10004
+gidNumber: 10004
+homeDirectory: /home/googleuser
+loginShell: /bin/bash

@@ -1,5 +1,7 @@
 #%PAM-1.0
 
-auth required pam_ldap.so
+# LDAP password authentication only (no MFA)
+# Uses standalone module with TOTP disabled
+auth required pam_ldap_totp_auth.so
 
 account sufficient pam_permit.so

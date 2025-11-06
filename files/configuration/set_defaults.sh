@@ -42,7 +42,6 @@ if [ "${OVPN_INTERFACE_NAME}x" == "x" ];          then export OVPN_INTERFACE_NAM
 if [ "${OVPN_NETWORK}x" == "x" ];                 then export OVPN_NETWORK="10.50.50.0 255.255.255.0";              fi
 if [ "${OVPN_VERBOSITY}x" == "x" ];               then export OVPN_VERBOSITY="3";                                   fi
 if [ "${OVPN_NAT}x" == "x" ];                     then export OVPN_NAT="true";                                      fi
-if [ "${OVPN_REGISTER_DNS}x" == "x" ];            then export OVPN_REGISTER_DNS="false";                            fi
 if [ "${OVPN_ENABLE_COMPRESSION}x" == "x" ];      then export OVPN_ENABLE_COMPRESSION="true";                       fi
 if [ "${REGENERATE_CERTS}x" == "x" ];             then export REGENERATE_CERTS="false";                             fi
 if [ "${OVPN_MANAGEMENT_ENABLE}x" == "x" ];       then export OVPN_MANAGEMENT_ENABLE="false";                       fi

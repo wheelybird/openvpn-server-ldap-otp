@@ -18,8 +18,6 @@ echo "
 client
 tls-client
 dev tun
-persist-key
-persist-tun
 remote-cert-tls server
 key-direction 1
 auth SHA512
@@ -29,7 +27,7 @@ reneg-sec 0
 "
 
 if [ "${OVPN_ROUTES}x" == "x" ] ; then
- echo "redirect-gateway def1"
+ echo "redirect-gateway def1 bypass-dhcp"
 fi
 
 if [ "${USE_CLIENT_CERTIFICATE}" != "true" ] ; then
@@ -46,7 +44,7 @@ if [ "${OVPN_DNS_SERVERS}x" != "x" ] ; then
   #script-security 2
   #up /etc/openvpn/update-systemd-resolved
   #down /etc/openvpn/update-systemd-resolved
-  
+
   ## Otherwise:
   #script-security 2
   #up /etc/openvpn/update-resolv-conf
@@ -56,11 +54,6 @@ if [ "${OVPN_DNS_SERVERS}x" != "x" ] ; then
  FS=',' read -r -a nameservers <<< "$OVPN_DNS_SERVERS"
 
 fi
-
-# Windows: this can force some windows clients to load the DNS configuration
-if [ "${OVPN_REGISTER_DNS}" == "true" ]; then 
- echo "register-dns"
-fi 
 
 echo "
 # Set log file verbosity
