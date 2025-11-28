@@ -47,11 +47,13 @@ docker run \
   -e "OVPN_SERVER_CN=vpn.example.com" \
   -e "LDAP_URI=ldap://ldap.example.com" \
   -e "LDAP_BASE_DN=dc=example,dc=com" \
-  -e "LDAP_BIND_USER_DN=cn=readonly,dc=example,dc=com" \
+  -e "LDAP_BIND_USER_DN=cn=pam-totp-ldap-auth,ou=services,dc=example,dc=com" \
   -e "LDAP_BIND_USER_PASS=password" \
   -d \
-  wheelybird/openvpn-ldap-otp:latest
+  wheelybird/openvpn-ldap-otp:v2.0.0
 ```
+
+**NOTE:** LDAP_BIND_USER should be the DN for an LDAP account that can access the user's LDAP attributes.  If you don't have a specific service account set up for this then you can use the administrator base DN, but this isn't recommended.  The example uses the example service account from the [LDAP TOTP schema](https://github.com/wheelybird/ldap-totp-schema) repository. 
 
 ### With MFA (recommended)
 
@@ -66,15 +68,15 @@ docker run \
   -e "OVPN_SERVER_CN=vpn.example.com" \
   -e "LDAP_URI=ldap://ldap.example.com" \
   -e "LDAP_BASE_DN=dc=example,dc=com" \
-  -e "LDAP_BIND_USER_DN=cn=readonly,dc=example,dc=com" \
-  -e "LDAP_BIND_USER_PASS=password" \
+  -e "LDAP_BIND_USER_DN=cn=pam-totp-ldap-auth,ou=services,dc=example,dc=com" \
+  -e "LDAP_BIND_USER_PASS=your_service_account_password" \
   -e "ENABLE_OTP=true" \
-  -e "ENABLE_PAM_LDAP_OTP=true" \
+  -e "TOTP_BACKEND=ldap" \
   -d \
-  wheelybird/openvpn-ldap-otp:latest
+  wheelybird/openvpn-ldap-otp:v2.0.0
 ```
 
-Deploy the [LDAP User Manager](https://github.com/wheelybird/ldap-user-manager) to give users a friendly web interface for MFA enrolment.
+Deploy [Luminary](https://github.com/wheelybird/luminary) to give users a friendly web interface for MFA enrolment.
 
 ### Get client configuration
 
@@ -93,12 +95,12 @@ Store TOTP secrets in LDAP for centralised management.
 
 **Prerequisites:**
 1. Install [LDAP TOTP Schema](https://github.com/wheelybird/ldap-totp-schema) in your LDAP directory
-2. Optionally deploy [LDAP User Manager](https://github.com/wheelybird/ldap-user-manager) for self-service
+2. Optionally deploy [Luminary](https://github.com/wheelybird/luminary) for self-service
 
 **Configuration:**
 ```bash
 -e "ENABLE_OTP=true"
--e "ENABLE_PAM_LDAP_OTP=true"
+-e "TOTP_BACKEND=ldap"
 ```
 
 **NOTE:** you can configure which LDAP attributes store TOTP data, so if you're unable to install the suggested schema it'll still be possible to store the data in LDAP (but not recommended).
@@ -127,7 +129,7 @@ Uses google-authenticator with file-based secret storage. The `pam_ldap_totp_aut
 **Configuration:**
 ```bash
 -e "ENABLE_OTP=true"
-# Do NOT set ENABLE_PAM_LDAP_OTP=true
+# TOTP_BACKEND defaults to 'file' if not set
 ```
 
 **Setup:** `docker exec -ti openvpn add-otp-user username`
@@ -200,8 +202,8 @@ Traditional X.509 certificate-based authentication (no LDAP required).
 | Variable | Default | Description |
 |----------|---------|-------------|
 | `ENABLE_OTP` | `false` | Enable two-factor authentication |
-| `ENABLE_PAM_LDAP_OTP` | `false` | Use LDAP-backed TOTP (requires LDAP schema) |
-| `LDAP_TOTP_ATTRIBUTE` | `totpSecret` | LDAP attribute storing TOTP secret |
+| `TOTP_BACKEND` | `file` | TOTP storage backend: `ldap` or `file` |
+| `LDAP_TOTP_ATTRIBUTE` | `totpSecret` | LDAP attribute storing TOTP secret (LDAP backend only) |
 | `TOTP_MODE` | `append` | Authentication mode (`append` only for OpenVPN) |
 | `MFA_GRACE_PERIOD_DAYS` | `7` | Days before enforcing MFA for new users |
 | `MFA_ENFORCEMENT_MODE` | `graceful` | Enforcement: `strict`, `graceful`, `warn_only` |
@@ -281,10 +283,10 @@ Mount `/etc/openvpn` as a volume to persist:
 ### Enable MFA
 ```bash
 -e "ENABLE_OTP=true"
--e "ENABLE_PAM_LDAP_OTP=true"
+-e "TOTP_BACKEND=ldap"
 ```
 
-Deploy [LDAP User Manager](https://github.com/wheelybird/ldap-user-manager) for self-service enrolment.
+Deploy [Luminary](https://github.com/wheelybird/luminary) for self-service enrolment.
 
 ### Restrict VPN access by LDAP group
 ```bash

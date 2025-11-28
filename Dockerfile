@@ -3,7 +3,7 @@
 # =============================================================================
 FROM ubuntu:24.04 AS builder
 
-ARG PAM_MODULE_VERSION=0.1.2
+ARG PAM_MODULE_VERSION=0.1.3
 
 RUN apt-get update && \
     DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \

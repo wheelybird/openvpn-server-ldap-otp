@@ -1,8 +1,13 @@
 # Configure the standalone PAM module for all authentication modes
 # The module is used in three scenarios:
-# 1. LDAP-backed TOTP (ENABLE_PAM_LDAP_OTP=true): totp_enabled=true, reads secrets from LDAP
-# 2. File-based TOTP (ENABLE_OTP=true, ENABLE_PAM_LDAP_OTP!=true): totp_enabled=false, just LDAP auth
+# 1. LDAP-backed TOTP (TOTP_BACKEND=ldap): totp_enabled=true, reads secrets from LDAP
+# 2. File-based TOTP (ENABLE_OTP=true, TOTP_BACKEND=file): totp_enabled=false, google-authenticator
 # 3. LDAP-only (ENABLE_OTP!=true): totp_enabled=false, just LDAP auth
+
+# Default TOTP_BACKEND to 'file' if not specified
+if [ -z "$TOTP_BACKEND" ]; then
+  TOTP_BACKEND="file"
+fi
 
 # Configure LDAP connection settings from environment variables
 configure_ldap_settings() {
@@ -54,9 +59,9 @@ configure_ldap_settings() {
 
 #Set up PAM for openvpn - with OTP if it's set as enabled
 if [ "$ENABLE_OTP" == "true" ]; then
-  if [ "$ENABLE_PAM_LDAP_OTP" == "true" ]; then
+  if [ "$TOTP_BACKEND" == "ldap" ]; then
     # Mode 1: LDAP-backed TOTP
-    echo "pam: enabling LDAP-backed TOTP (standalone module with totp_enabled=true)"
+    echo "pam: enabling LDAP-backed TOTP (TOTP_BACKEND=ldap)"
     cp -f /opt/pam.d/openvpn.with-ldap-otp /etc/pam.d/openvpn
 
     # Configure LDAP settings
@@ -92,7 +97,7 @@ if [ "$ENABLE_OTP" == "true" ]; then
 
   else
     # Mode 2: File-based TOTP (google-authenticator + LDAP password auth)
-    echo "pam: enabling file-based TOTP (google-authenticator + standalone module with totp_enabled=false)"
+    echo "pam: enabling file-based TOTP (TOTP_BACKEND=file, using google-authenticator)"
     cp -f /opt/pam.d/openvpn.with-otp /etc/pam.d/openvpn
 
     # Configure LDAP settings

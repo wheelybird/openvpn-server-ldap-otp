@@ -50,7 +50,7 @@ if [ "${OVPN_DEFAULT_SERVER}x" == "x" ];          then export OVPN_DEFAULT_SERVE
 if [ "${DEBUG}x" == "x" ];                        then export DEBUG="false";                                        fi
 if [ "${LOG_TO_STDOUT}x" == "x" ];                then export LOG_TO_STDOUT="true";                                 fi
 if [ "${ENABLE_OTP}x" == "x" ];                   then export ENABLE_OTP="false";                                   fi
-if [ "${ENABLE_PAM_LDAP_OTP}x" == "x" ];          then export ENABLE_PAM_LDAP_OTP="false";                          fi
+if [ "${TOTP_BACKEND}x" == "x" ];                 then export TOTP_BACKEND="file";                                  fi
 if [ "${LDAP_TOTP_ATTRIBUTE}x" == "x" ];          then export LDAP_TOTP_ATTRIBUTE="totpSecret";                     fi
 if [ "${LDAP_TOTP_PREFIX}x" == "x" ];             then export LDAP_TOTP_PREFIX="";                                  fi
 if [ "${MFA_GRACE_PERIOD_DAYS}x" == "x" ];        then export MFA_GRACE_PERIOD_DAYS="7";                            fi
