@@ -2,15 +2,17 @@
 
 This document explains the different authentication modes available for this OpenVPN container.
 
-## LDAP Schema Requirement for LDAP-Backed TOTP
+## LDAP Schema Requirement for LDAP-Backed MFA
 
-If you want to use **LDAP-backed TOTP** (mode 3 below), you must first install the LDAP TOTP schema in your LDAP directory:
+If you want to use **LDAP-backed MFA** (mode 3 below), you must first install the LDAP TOTP schema in your LDAP directory:
 
 **LDAP TOTP Schema:** https://github.com/wheelybird/ldap-totp-schema
 
 This schema adds the necessary LDAP attributes (`totpSecret`, `totpStatus`, `totpScratchCode`, etc.) and object classes (`totpUser`, `mfaGroup`) for storing TOTP secrets and managing MFA policies in LDAP.
 
-**Benefits of LDAP-backed TOTP:**
+**Note:** This implementation uses TOTP (Time-based One-Time Password) as the MFA method.
+
+**Benefits of LDAP-backed MFA:**
 - Centralised TOTP secret management
 - Self-service user enrolment via web interface (using [LDAP User Manager](https://github.com/wheelybird/ldap-user-manager))
 - Group-based MFA policy enforcement
@@ -31,10 +33,10 @@ If `USE_CLIENT_CERTIFICATE=true`, no PAM authentication is used.
 
 ---
 
-### 2. LDAP Password Only (No OTP)
-If `ENABLE_OTP` is not set or `ENABLE_OTP=false`, only LDAP password authentication is used.
+### 2. LDAP Password Only (No MFA)
+If `MFA_ENABLED` is not set or `MFA_ENABLED=false`, only LDAP password authentication is used.
 - **Environment Variables:**
-  - `ENABLE_OTP=false` (or not set)
+  - `MFA_ENABLED=false` (or not set)
 - **Authentication:** LDAP password only
 - **PAM Configuration:** `/etc/pam.d/openvpn.without-otp`
 - **PAM Modules:** `pam_ldap.so`
@@ -42,12 +44,12 @@ If `ENABLE_OTP` is not set or `ENABLE_OTP=false`, only LDAP password authenticat
 
 ---
 
-### 3. LDAP-Backed TOTP (Recommended for MFA)
-If `ENABLE_OTP=true` AND `TOTP_BACKEND=ldap`, TOTP secrets are stored in LDAP.
+### 3. LDAP-Backed MFA (Recommended)
+If `MFA_ENABLED=true` AND `MFA_BACKEND=ldap`, TOTP secrets are stored in LDAP.
 - **Environment Variables:**
-  - `ENABLE_OTP=true`
-  - `TOTP_BACKEND=ldap`
-  - `LDAP_TOTP_ATTRIBUTE=totpSecret` (default)
+  - `MFA_ENABLED=true`
+  - `MFA_BACKEND=ldap`
+  - `MFA_TOTP_ATTRIBUTE=totpSecret` (default)
 - **Authentication:** LDAP password + LDAP-stored TOTP (append mode)
 - **PAM Configuration:** `/etc/pam.d/openvpn.with-ldap-otp`
 - **PAM Modules:** `pam_ldap_totp_auth.so` (standalone module)
@@ -63,11 +65,11 @@ If `ENABLE_OTP=true` AND `TOTP_BACKEND=ldap`, TOTP secrets are stored in LDAP.
 
 ---
 
-### 4. File-Based TOTP (Default When OTP Enabled)
-If `ENABLE_OTP=true` but `TOTP_BACKEND=file` (or not set), file-based TOTP is used.
+### 4. File-Based MFA (Default When MFA Enabled)
+If `MFA_ENABLED=true` but `MFA_BACKEND=file` (or not set), file-based TOTP is used.
 - **Environment Variables:**
-  - `ENABLE_OTP=true`
-  - `TOTP_BACKEND=file` (default)
+  - `MFA_ENABLED=true`
+  - `MFA_BACKEND=file` (default)
 - **Authentication:** LDAP password + file-based TOTP (append mode)
 - **PAM Configuration:** `/etc/pam.d/openvpn.with-otp`
 - **PAM Modules:** `pam_google_authenticator.so` + `pam_ldap.so`
@@ -87,17 +89,17 @@ docker exec -ti openvpn add-otp-user <username>
 if [ "${USE_CLIENT_CERTIFICATE}" == "true" ]; then
   # No PAM authentication
   echo "Using certificate-based authentication"
-elif [ "$ENABLE_OTP" != "true" ]; then
+elif [ "$MFA_ENABLED" != "true" ]; then
   # LDAP password only
-  echo "Using LDAP password authentication (no OTP)"
+  echo "Using LDAP password authentication (no MFA)"
   cp -f /opt/pam.d/openvpn.without-otp /etc/pam.d/openvpn
-elif [ "$TOTP_BACKEND" == "ldap" ]; then
-  # LDAP-backed TOTP
-  echo "Using LDAP password + LDAP-backed OTP"
+elif [ "$MFA_BACKEND" == "ldap" ]; then
+  # LDAP-backed MFA using TOTP
+  echo "Using LDAP password + LDAP-backed MFA (TOTP)"
   cp -f /opt/pam.d/openvpn.with-ldap-otp /etc/pam.d/openvpn
 else
-  # File-based TOTP (default when OTP enabled)
-  echo "Using LDAP password + file-based OTP (google-authenticator)"
+  # File-based MFA using TOTP (default when MFA enabled)
+  echo "Using LDAP password + file-based MFA (google-authenticator TOTP)"
   cp -f /opt/pam.d/openvpn.with-otp /etc/pam.d/openvpn
 fi
 ```
@@ -121,11 +123,11 @@ docker run \
 - LDAP password authentication only
 - Not recommended for production
 
-### Example 2: File-Based TOTP (Default OTP Mode)
+### Example 2: File-Based MFA (Default MFA Mode)
 ```bash
 docker run \
   -e "OVPN_SERVER_CN=vpn.example.com" \
-  -e "ENABLE_OTP=true" \
+  -e "MFA_ENABLED=true" \
   -e "LDAP_URI=ldap://ldap.example.com:389" \
   -e "LDAP_BASE_DN=dc=example,dc=com" \
   -e "LDAP_BIND_USER_DN=cn=binduser,dc=example,dc=com" \
@@ -136,20 +138,20 @@ docker run \
   ghcr.io/wheelybird/openvpn-server-ldap-otp:latest
 ```
 - Users need `.google_authenticator` files in `/etc/openvpn/otp/`
-- Standard google-authenticator setup
+- Standard google-authenticator TOTP setup
 - Set up users: `docker exec -ti openvpn add-otp-user username`
 
-### Example 3: LDAP-Backed TOTP (Recommended)
+### Example 3: LDAP-Backed MFA (Recommended)
 ```bash
 docker run \
   -e "OVPN_SERVER_CN=vpn.example.com" \
-  -e "ENABLE_OTP=true" \
-  -e "TOTP_BACKEND=ldap" \
+  -e "MFA_ENABLED=true" \
+  -e "MFA_BACKEND=ldap" \
   -e "LDAP_URI=ldap://ldap.example.com:389" \
   -e "LDAP_BASE_DN=dc=example,dc=com" \
   -e "LDAP_BIND_USER_DN=cn=binduser,dc=example,dc=com" \
   -e "LDAP_BIND_USER_PASS=password" \
-  -e "LDAP_TOTP_ATTRIBUTE=totpSecret" \
+  -e "MFA_TOTP_ATTRIBUTE=totpSecret" \
   --volume /path/to/openvpn_data:/etc/openvpn \
   -p 1194:1194/udp \
   --cap-add=NET_ADMIN \
@@ -178,7 +180,7 @@ docker run \
 
 ### PAM Module Configuration
 
-When using LDAP-backed TOTP (`TOTP_BACKEND=ldap`), the PAM module can be configured via `/etc/security/pam_ldap_totp_auth.conf`:
+When using LDAP-backed MFA (`MFA_BACKEND=ldap`), the PAM module can be configured via `/etc/security/pam_ldap_totp_auth.conf`:
 
 ```ini
 # TOTP mode (only append mode supported in OpenVPN)
@@ -204,15 +206,21 @@ debug false
 
 See the [PAM module documentation](https://github.com/wheelybird/pam-ldap-totp-auth) for all configuration options.
 
-### Environment Variables for LDAP-Backed TOTP
+### Environment Variables for LDAP-Backed MFA
+
+**Note:** MFA is implemented using TOTP (Time-based One-Time Password).
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `TOTP_BACKEND` | file | TOTP storage backend: `ldap` or `file` |
-| `LDAP_TOTP_ATTRIBUTE` | totpSecret | LDAP attribute for TOTP secret |
-| `TOTP_MODE` | append | Always `append` for OpenVPN |
-| `TOTP_WINDOW` | 3 | Time window tolerance (±steps) |
-| `TOTP_GRACE_PERIOD_DAYS` | 7 | Grace period for new users |
+| `MFA_ENABLED` | false | Enable multi-factor authentication |
+| `ENABLE_OTP` | false | Alias for `MFA_ENABLED` (backwards compat) |
+| `MFA_BACKEND` | file | MFA storage backend: `ldap` or `file` |
+| `MFA_TOTP_ATTRIBUTE` | totpSecret | LDAP attribute for TOTP secret |
+| `MFA_MODE` | append | Always `append` for OpenVPN |
+| `MFA_GRACE_PERIOD_DAYS` | 7 | Grace period for new users |
+| `MFA_ENFORCEMENT_MODE` | graceful | Enforcement mode |
+
+**Backwards compatibility:** Both `MFA_ENABLED` and `ENABLE_OTP` work. If both are set, `MFA_ENABLED` takes precedence.
 
 ## Related Projects
 

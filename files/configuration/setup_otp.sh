@@ -1,13 +1,8 @@
 # Configure the standalone PAM module for all authentication modes
 # The module is used in three scenarios:
-# 1. LDAP-backed TOTP (TOTP_BACKEND=ldap): totp_enabled=true, reads secrets from LDAP
-# 2. File-based TOTP (ENABLE_OTP=true, TOTP_BACKEND=file): totp_enabled=false, google-authenticator
-# 3. LDAP-only (ENABLE_OTP!=true): totp_enabled=false, just LDAP auth
-
-# Default TOTP_BACKEND to 'file' if not specified
-if [ -z "$TOTP_BACKEND" ]; then
-  TOTP_BACKEND="file"
-fi
+# 1. LDAP-backed MFA (MFA_BACKEND=ldap): totp_enabled=true, reads TOTP secrets from LDAP
+# 2. File-based MFA (MFA_ENABLED=true, MFA_BACKEND=file): totp_enabled=false, google-authenticator
+# 3. LDAP-only (MFA_ENABLED!=true): totp_enabled=false, just LDAP auth
 
 # Configure LDAP connection settings from environment variables
 configure_ldap_settings() {
@@ -57,11 +52,11 @@ configure_ldap_settings() {
   fi
 }
 
-#Set up PAM for openvpn - with OTP if it's set as enabled
-if [ "$ENABLE_OTP" == "true" ]; then
-  if [ "$TOTP_BACKEND" == "ldap" ]; then
-    # Mode 1: LDAP-backed TOTP
-    echo "pam: enabling LDAP-backed TOTP (TOTP_BACKEND=ldap)"
+#Set up PAM for openvpn - with MFA if it's set as enabled
+if [ "$MFA_ENABLED" == "true" ]; then
+  if [ "$MFA_BACKEND" == "ldap" ]; then
+    # Mode 1: LDAP-backed MFA using TOTP
+    echo "pam: enabling LDAP-backed MFA (MFA_BACKEND=ldap, using TOTP)"
     cp -f /opt/pam.d/openvpn.with-ldap-otp /etc/pam.d/openvpn
 
     # Configure LDAP settings
@@ -70,17 +65,17 @@ if [ "$ENABLE_OTP" == "true" ]; then
     # Enable TOTP validation
     sed -i "s/^totp_enabled .*/totp_enabled true/" /etc/security/pam_ldap_totp_auth.conf
 
-    # Configure TOTP-specific settings
-    if [ -n "$TOTP_MODE" ]; then
-      sed -i "s/^totp_mode .*/totp_mode $TOTP_MODE/" /etc/security/pam_ldap_totp_auth.conf
+    # Configure MFA/TOTP-specific settings
+    if [ -n "$MFA_MODE" ]; then
+      sed -i "s/^totp_mode .*/totp_mode $MFA_MODE/" /etc/security/pam_ldap_totp_auth.conf
     fi
 
-    if [ -n "$LDAP_TOTP_ATTRIBUTE" ]; then
-      sed -i "s/^totp_attribute .*/totp_attribute $LDAP_TOTP_ATTRIBUTE/" /etc/security/pam_ldap_totp_auth.conf
+    if [ -n "$MFA_TOTP_ATTRIBUTE" ]; then
+      sed -i "s/^totp_attribute .*/totp_attribute $MFA_TOTP_ATTRIBUTE/" /etc/security/pam_ldap_totp_auth.conf
     fi
 
-    if [ -n "$LDAP_TOTP_PREFIX" ]; then
-      sed -i "s/^totp_prefix .*/totp_prefix $LDAP_TOTP_PREFIX/" /etc/security/pam_ldap_totp_auth.conf
+    if [ -n "$MFA_TOTP_PREFIX" ]; then
+      sed -i "s/^totp_prefix .*/totp_prefix $MFA_TOTP_PREFIX/" /etc/security/pam_ldap_totp_auth.conf
     fi
 
     if [ -n "$MFA_GRACE_PERIOD_DAYS" ]; then
@@ -96,8 +91,8 @@ if [ "$ENABLE_OTP" == "true" ]; then
     fi
 
   else
-    # Mode 2: File-based TOTP (google-authenticator + LDAP password auth)
-    echo "pam: enabling file-based TOTP (TOTP_BACKEND=file, using google-authenticator)"
+    # Mode 2: File-based MFA using TOTP (google-authenticator + LDAP password auth)
+    echo "pam: enabling file-based MFA (MFA_BACKEND=file, using google-authenticator TOTP)"
     cp -f /opt/pam.d/openvpn.with-otp /etc/pam.d/openvpn
 
     # Configure LDAP settings

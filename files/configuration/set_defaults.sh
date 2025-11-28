@@ -49,10 +49,23 @@ if [ "${OVPN_MANAGEMENT_NOAUTH}x" == "x" ];       then export OVPN_MANAGEMENT_NO
 if [ "${OVPN_DEFAULT_SERVER}x" == "x" ];          then export OVPN_DEFAULT_SERVER="true";                           fi
 if [ "${DEBUG}x" == "x" ];                        then export DEBUG="false";                                        fi
 if [ "${LOG_TO_STDOUT}x" == "x" ];                then export LOG_TO_STDOUT="true";                                 fi
-if [ "${ENABLE_OTP}x" == "x" ];                   then export ENABLE_OTP="false";                                   fi
-if [ "${TOTP_BACKEND}x" == "x" ];                 then export TOTP_BACKEND="file";                                  fi
-if [ "${LDAP_TOTP_ATTRIBUTE}x" == "x" ];          then export LDAP_TOTP_ATTRIBUTE="totpSecret";                     fi
-if [ "${LDAP_TOTP_PREFIX}x" == "x" ];             then export LDAP_TOTP_PREFIX="";                                  fi
+
+# MFA_ENABLED takes precedence over ENABLE_OTP (backwards compatibility)
+if [ "${MFA_ENABLED}x" == "x" ]; then
+  # MFA_ENABLED not set, check ENABLE_OTP for backwards compatibility
+  if [ "${ENABLE_OTP}x" == "x" ]; then
+    export MFA_ENABLED="false"
+  else
+    export MFA_ENABLED="$ENABLE_OTP"
+  fi
+fi
+# Also set ENABLE_OTP for backwards compatibility with any scripts that might use it
+export ENABLE_OTP="$MFA_ENABLED"
+
+if [ "${MFA_BACKEND}x" == "x" ];                  then export MFA_BACKEND="file";                                   fi
+if [ "${MFA_MODE}x" == "x" ];                     then export MFA_MODE="append";                                    fi
+if [ "${MFA_TOTP_ATTRIBUTE}x" == "x" ];           then export MFA_TOTP_ATTRIBUTE="totpSecret";                      fi
+if [ "${MFA_TOTP_PREFIX}x" == "x" ];              then export MFA_TOTP_PREFIX="";                                   fi
 if [ "${MFA_GRACE_PERIOD_DAYS}x" == "x" ];        then export MFA_GRACE_PERIOD_DAYS="7";                            fi
 if [ "${MFA_ENFORCEMENT_MODE}x" == "x" ];         then export MFA_ENFORCEMENT_MODE="graceful";                      fi
 if [ "${LDAP_LOGIN_ATTRIBUTE}x" == "x" ];         then export LDAP_LOGIN_ATTRIBUTE="uid";                           fi

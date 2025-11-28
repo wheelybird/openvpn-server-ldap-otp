@@ -70,8 +70,8 @@ docker run \
   -e "LDAP_BASE_DN=dc=example,dc=com" \
   -e "LDAP_BIND_USER_DN=cn=pam-totp-ldap-auth,ou=services,dc=example,dc=com" \
   -e "LDAP_BIND_USER_PASS=your_service_account_password" \
-  -e "ENABLE_OTP=true" \
-  -e "TOTP_BACKEND=ldap" \
+  -e "MFA_ENABLED=true" \
+  -e "MFA_BACKEND=ldap" \
   -d \
   wheelybird/openvpn-ldap-otp:v2.0.0
 ```
@@ -88,9 +88,9 @@ Distribute this `.ovpn` file to your users. When connecting with MFA enabled, us
 
 ## Authentication modes
 
-**NOTE:** This container uses the (`pam_ldap_totp_auth`) PAM module for LDAP and TOTP authentication. The module can operate in three modes controlled by environment variables.
+**NOTE:** This container uses the (`pam_ldap_totp_auth`) PAM module for LDAP and MFA authentication. The module can operate in three modes controlled by environment variables. MFA is implemented using TOTP (Time-based One-Time Password).
 
-### 1. LDAP-backed TOTP (recommended)
+### 1. LDAP-backed MFA (recommended)
 Store TOTP secrets in LDAP for centralised management.
 
 **Prerequisites:**
@@ -99,9 +99,11 @@ Store TOTP secrets in LDAP for centralised management.
 
 **Configuration:**
 ```bash
--e "ENABLE_OTP=true"
--e "TOTP_BACKEND=ldap"
+-e "MFA_ENABLED=true"
+-e "MFA_BACKEND=ldap"
 ```
+
+**Note:** This implementation uses TOTP (Time-based One-Time Password) as the MFA method.
 
 **NOTE:** you can configure which LDAP attributes store TOTP data, so if you're unable to install the suggested schema it'll still be possible to store the data in LDAP (but not recommended).
 
@@ -122,15 +124,17 @@ See [AUTHENTICATION_MODES.md](AUTHENTICATION_MODES.md) for detailed information.
 
 ---
 
-### 2. File-based TOTP (traditional)
+### 2. File-based MFA (traditional)
 
 Uses google-authenticator with file-based secret storage. The `pam_ldap_totp_auth` module handles LDAP password authentication (set `totp_enabled=false`).
 
 **Configuration:**
 ```bash
--e "ENABLE_OTP=true"
-# TOTP_BACKEND defaults to 'file' if not set
+-e "MFA_ENABLED=true"
+# MFA_BACKEND defaults to 'file' if not set
 ```
+
+**Note:** File-based mode uses google-authenticator TOTP implementation.
 
 **Setup:** `docker exec -ti openvpn add-otp-user username`
 
@@ -151,7 +155,7 @@ Simple LDAP password authentication without two-factor. Uses the `pam_ldap_totp_
 ```bash
 -e "LDAP_URI=ldap://ldap.example.com"
 -e "LDAP_BASE_DN=dc=example,dc=com"
-# Do NOT set ENABLE_OTP=true
+# Do NOT set MFA_ENABLED=true (or leave it as default 'false')
 ```
 
 **Note:** Not recommended for production. Enable MFA for security.
@@ -197,16 +201,21 @@ Traditional X.509 certificate-based authentication (no LDAP required).
 
 **Active Directory users:** Set `-e "ACTIVE_DIRECTORY_COMPAT_MODE=true"` to automatically configure appropriate settings.
 
-### MFA/TOTP settings
+### MFA settings
+
+**Note:** MFA is implemented using TOTP (Time-based One-Time Password).
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `ENABLE_OTP` | `false` | Enable two-factor authentication |
-| `TOTP_BACKEND` | `file` | TOTP storage backend: `ldap` or `file` |
-| `LDAP_TOTP_ATTRIBUTE` | `totpSecret` | LDAP attribute storing TOTP secret (LDAP backend only) |
-| `TOTP_MODE` | `append` | Authentication mode (`append` only for OpenVPN) |
+| `MFA_ENABLED` | `false` | Enable multi-factor authentication (using TOTP) |
+| `ENABLE_OTP` | `false` | Alias for `MFA_ENABLED` (backwards compatibility) |
+| `MFA_BACKEND` | `file` | MFA storage backend: `ldap` or `file` |
+| `MFA_TOTP_ATTRIBUTE` | `totpSecret` | LDAP attribute storing TOTP secret (LDAP backend only) |
+| `MFA_MODE` | `append` | Authentication mode (`append` only for OpenVPN) |
 | `MFA_GRACE_PERIOD_DAYS` | `7` | Days before enforcing MFA for new users |
 | `MFA_ENFORCEMENT_MODE` | `graceful` | Enforcement: `strict`, `graceful`, `warn_only` |
+
+**Backwards compatibility:** Both `MFA_ENABLED` and `ENABLE_OTP` work. If both are set, `MFA_ENABLED` takes precedence.
 
 ### Network Settings
 
@@ -282,9 +291,11 @@ Mount `/etc/openvpn` as a volume to persist:
 
 ### Enable MFA
 ```bash
--e "ENABLE_OTP=true"
--e "TOTP_BACKEND=ldap"
+-e "MFA_ENABLED=true"
+-e "MFA_BACKEND=ldap"
 ```
+
+**Note:** `MFA_ENABLED` replaces the deprecated `ENABLE_OTP` variable. Both work, but `MFA_ENABLED` takes precedence if both are set. The MFA implementation uses TOTP (Time-based One-Time Password).
 
 Deploy [Luminary](https://github.com/wheelybird/luminary) for self-service enrolment.
 
