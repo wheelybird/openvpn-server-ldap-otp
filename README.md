@@ -26,15 +26,12 @@ This OpenVPN server works best as part of an integrated solution:
 | Component | Purpose | Repository |
 |-----------|---------|------------|
 | **OpenVPN server** (this project) | VPN gateway with LDAP + MFA authentication | [openvpn-server-ldap-otp](https://github.com/wheelybird/openvpn-server-ldap-otp) |
-| **LDAP User Manager** | Web UI for self-service MFA enrolment | [ldap-user-manager](https://github.com/wheelybird/ldap-user-manager) |
-| **LDAP TOTP schema** | LDAP schema for storing TOTP secrets | [ldap-totp-schema](https://github.com/wheelybird/ldap-totp-schema) |
-| **LDAP TOTP PAM module** | PAM authentication module (built automatically) | [pam-ldap-totp-auth](https://github.com/wheelybird/pam-ldap-totp-auth) |
+| **Luminary** | A web UI for self-service MFA enrolment | [luminary](https://github.com/wheelybird/luminary) |
 
 **Benefits of the complete stack:**
 - Users can scan QR codes and set up MFA themselves
 - Admins can enforce MFA by group membership
 - Grace periods allow users time to enrol before VPN access is restricted
-- Backup codes stored in LDAP for account recovery
 - No need to SSH into servers to manage OTP secrets
 
 ## Quick start
@@ -418,7 +415,7 @@ Install NTP/chrony on the host.
 
 - **[AUTHENTICATION_MODES.md](AUTHENTICATION_MODES.md)** - Detailed authentication mode documentation
 - **[LDAP TOTP Schema](https://github.com/wheelybird/ldap-totp-schema)** - Schema installation guide
-- **[LDAP User Manager](https://github.com/wheelybird/ldap-user-manager)** - Self-service MFA web UI
+- **[Luminary](https://github.com/wheelybird/luminary)** - The Luminary LDAP account manager with self-service password/MFA support
 - **[LDAP TOTP PAM Module](https://github.com/wheelybird/pam-ldap-totp-auth)** - PAM module documentation
 
 ## Support
@@ -434,11 +431,13 @@ See LICENCE file for details.
 
 Built on top of:
 - [OpenVPN](https://openvpn.net/)
-- [OATH Toolkit](https://www.nongnu.org/oath-toolkit/) - TOTP validation
-- [OpenLDAP Libraries](https://www.openldap.org/) - LDAP connectivity
+- [OATH toolkit](https://www.nongnu.org/oath-toolkit/) - TOTP validation
+- [OpenLDAP libraries](https://www.openldap.org/) - LDAP connectivity
 - [Easy-RSA](https://github.com/OpenVPN/easy-rsa/) - Certificate management
 
 Custom components:
-- [LDAP TOTP PAM Module](https://github.com/wheelybird/pam-ldap-totp-auth) - Standalone authentication module
+| Component | Purpose | Repository |
+| [LDAP TOTP schema](https://github.com/wheelybird/ldap-totp-schema) - An LDAP schema that allows the storage of MFA/TOTP keys and metadata in LDAP
+- [LDAP TOTP PAM module](https://github.com/wheelybird/pam-ldap-totp-auth) - A Linux Pluggable-Authentication-Module that authenticates LDAP accounts and can authenticate One-Time-Passwords when LDAP uses the LDAP TOTP schema
 
 Part of the wheelybird LDAP MFA suite.

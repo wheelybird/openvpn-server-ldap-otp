@@ -3,7 +3,7 @@
 # =============================================================================
 FROM ubuntu:24.04 AS builder
 
-ARG PAM_MODULE_VERSION=0.1.1
+ARG PAM_MODULE_VERSION=0.1.2
 
 RUN apt-get update && \
     DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
@@ -35,6 +35,7 @@ LABEL org.opencontainers.image.description="OpenVPN server with LDAP and TOTP au
 LABEL org.opencontainers.image.source="https://github.com/wheelybird/openvpn-server-ldap-otp"
 
 # Install runtime dependencies only (no build tools)
+# Note: liboath0 was renamed to liboath0t64 on some architectures (Debian's 64-bit time_t transition)
 RUN apt-get update && \
     DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
         wget \
@@ -47,11 +48,12 @@ RUN apt-get update && \
         iptables \
         ldap-utils \
         libpam-google-authenticator \
-        liboath0 \
         net-tools \
         openssl \
         openvpn \
         pamtester && \
+    (apt-get install -y --no-install-recommends liboath0 || \
+     apt-get install -y --no-install-recommends liboath0t64) && \
     apt-get autoremove && \
     rm -rf /var/lib/apt/lists/* && \
     mkdir /opt/easyrsa && \
