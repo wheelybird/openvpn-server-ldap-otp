@@ -238,7 +238,6 @@ Use `LDAP_FILTER` to control which LDAP users can authenticate:
 | `ENABLE_OTP` | `false` | Alias for `MFA_ENABLED` (backwards compatibility) |
 | `MFA_BACKEND` | `file` | MFA storage backend: `ldap` or `file` |
 | `MFA_TOTP_ATTRIBUTE` | `totpSecret` | LDAP attribute storing TOTP secret (LDAP backend only) |
-| `MFA_MODE` | `append` | Authentication mode (`append` only for OpenVPN) |
 | `MFA_GRACE_PERIOD_DAYS` | `7` | Grace period for new users (days) |
 | `MFA_ENFORCEMENT_MODE` | `graceful` | Enforcement mode (see below) |
 

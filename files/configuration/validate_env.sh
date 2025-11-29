@@ -58,8 +58,11 @@ validate_boolean() {
     return 0  # Empty value is okay (will use default)
   fi
 
-  if [ "$var_value" != "true" ] && [ "$var_value" != "false" ]; then
-    error "$var_name must be 'true' or 'false', got '$var_value'"
+  # Convert to lowercase for comparison
+  local var_lower="${var_value,,}"
+
+  if [ "$var_lower" != "true" ] && [ "$var_lower" != "false" ]; then
+    error "$var_name must be 'true' or 'false' (case-insensitive), got '$var_value'"
     return 1
   fi
 
@@ -196,7 +199,7 @@ info "Starting environment variable validation..."
 # REQUIRED VARIABLES
 # ============================================================================
 
-if [ "${USE_CLIENT_CERTIFICATE}" != "true" ]; then
+if [ "${USE_CLIENT_CERTIFICATE,,}" != "true" ]; then
   if [ -z "$OVPN_SERVER_CN" ]; then
     error "OVPN_SERVER_CN is required"
   else
@@ -223,7 +226,6 @@ fi
 validate_boolean "MFA_ENABLED" "$MFA_ENABLED"
 validate_boolean "ENABLE_OTP" "$ENABLE_OTP"  # Backwards compat
 validate_enum "MFA_BACKEND" "$MFA_BACKEND" "ldap" "file"
-validate_enum "MFA_MODE" "$MFA_MODE" "append" "challenge_response" "web_auth"
 validate_enum "MFA_ENFORCEMENT_MODE" "$MFA_ENFORCEMENT_MODE" "strict" "graceful" "warn_only"
 validate_numeric "MFA_GRACE_PERIOD_DAYS" "$MFA_GRACE_PERIOD_DAYS" 0 365
 
@@ -320,7 +322,7 @@ validate_boolean "ACTIVE_DIRECTORY_COMPAT_MODE" "$ACTIVE_DIRECTORY_COMPAT_MODE"
 # ============================================================================
 
 # Warn about insecure configurations
-if [ "$MFA_ENABLED" != "true" ] && [ "$USE_CLIENT_CERTIFICATE" != "true" ]; then
+if [ "${MFA_ENABLED,,}" != "true" ] && [ "${USE_CLIENT_CERTIFICATE,,}" != "true" ]; then
   warn "MFA is disabled - consider enabling MFA for production use"
 fi
 
@@ -332,7 +334,7 @@ if [ "$LDAP_TLS_VALIDATE_CERT" == "false" ]; then
   warn "LDAP TLS certificate validation is disabled - vulnerable to MITM attacks"
 fi
 
-if [ "$OVPN_MANAGEMENT_NOAUTH" == "true" ]; then
+if [ "${OVPN_MANAGEMENT_NOAUTH,,}" == "true" ]; then
   warn "OpenVPN management interface has authentication disabled - security risk"
 fi
 

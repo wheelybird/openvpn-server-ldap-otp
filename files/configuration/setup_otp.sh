@@ -46,15 +46,15 @@ configure_ldap_settings() {
   fi
 
   # Enable debug logging if specified
-  if [ "$OTP_LDAP_DEBUG" == "true" ] || [ "$DEBUG" == "true" ]; then
+  if [ "${OTP_LDAP_DEBUG,,}" == "true" ] || [ "${DEBUG,,}" == "true" ]; then
     sed -i "s/^debug .*/debug true/" /etc/security/pam_ldap_totp_auth.conf
     echo "pam_ldap_totp_auth: debug logging enabled"
   fi
 }
 
 #Set up PAM for openvpn - with MFA if it's set as enabled
-if [ "$MFA_ENABLED" == "true" ]; then
-  if [ "$MFA_BACKEND" == "ldap" ]; then
+if [ "${MFA_ENABLED,,}" == "true" ]; then
+  if [ "${MFA_BACKEND,,}" == "ldap" ]; then
     # Mode 1: LDAP-backed MFA using TOTP
     echo "pam: enabling LDAP-backed MFA (MFA_BACKEND=ldap, using TOTP)"
     cp -f /opt/pam.d/openvpn.with-ldap-otp /etc/pam.d/openvpn
@@ -66,9 +66,8 @@ if [ "$MFA_ENABLED" == "true" ]; then
     sed -i "s/^totp_enabled .*/totp_enabled true/" /etc/security/pam_ldap_totp_auth.conf
 
     # Configure MFA/TOTP-specific settings
-    if [ -n "$MFA_MODE" ]; then
-      sed -i "s/^totp_mode .*/totp_mode $MFA_MODE/" /etc/security/pam_ldap_totp_auth.conf
-    fi
+    # OpenVPN always uses append mode (password+TOTP concatenated)
+    sed -i "s/^totp_mode .*/totp_mode append/" /etc/security/pam_ldap_totp_auth.conf
 
     if [ -n "$MFA_TOTP_ATTRIBUTE" ]; then
       sed -i "s/^totp_attribute .*/totp_attribute $MFA_TOTP_ATTRIBUTE/" /etc/security/pam_ldap_totp_auth.conf

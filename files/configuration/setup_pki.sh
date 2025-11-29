@@ -1,4 +1,4 @@
-if [ ! -f "$PKI_DIR/issued/$OVPN_SERVER_CN.crt" ] || [ "$REGENERATE_CERTS" == 'true' ]; then
+if [ ! -f "$PKI_DIR/issued/$OVPN_SERVER_CN.crt" ] || [ "${REGENERATE_CERTS,,}" == 'true' ]; then
 
  echo "easyrsa: creating server certs"
  sed -i 's/^RANDFILE/#RANDFILE/g' /opt/easyrsa/openssl-easyrsa.cnf
@@ -14,7 +14,7 @@ if [ ! -f "$PKI_DIR/issued/$OVPN_SERVER_CN.crt" ] || [ "$REGENERATE_CERTS" == 't
  $EASYCMD gen-req "$OVPN_SERVER_CN" nopass
  $EASYCMD sign-req server "$OVPN_SERVER_CN"
 
- if [ "${USE_CLIENT_CERTIFICATE}" == "true" ] ; then
+ if [ "${USE_CLIENT_CERTIFICATE,,}" == "true" ] ; then
   echo "easyrsa: creating client certs"
   $EASYCMD build-client-full client nopass
  fi

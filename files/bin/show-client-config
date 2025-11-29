@@ -30,7 +30,7 @@ if [ "${OVPN_ROUTES}x" == "x" ] ; then
  echo "redirect-gateway def1 bypass-dhcp"
 fi
 
-if [ "${USE_CLIENT_CERTIFICATE}" != "true" ] ; then
+if [ "${USE_CLIENT_CERTIFICATE,,}" != "true" ] ; then
  echo "auth-user-pass"
 fi
 
@@ -73,7 +73,7 @@ $(cat $PKI_DIR/ta.key)
 </tls-auth>
 "
 
-if [ "${USE_CLIENT_CERTIFICATE}" == "true" ] ; then
+if [ "${USE_CLIENT_CERTIFICATE,,}" == "true" ] ; then
 
  if [ ! -f "$PKI_DIR/private/client.key" ] || [ ! -f "$PKI_DIR/issued/client.crt" ] ; then
  

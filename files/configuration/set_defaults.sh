@@ -15,7 +15,7 @@ if [ "${USE_CLIENT_CERTIFICATE}x" == "x" ]; then export USE_CLIENT_CERTIFICATE="
 
 if [ "${OVPN_SERVER_CN}x" == "x" ]; then show_error OVPN_SERVER_CN ; fi
 
-if [ "${USE_CLIENT_CERTIFICATE}" != "true" ]; then
+if [ "${USE_CLIENT_CERTIFICATE,,}" != "true" ]; then
  if [ "${LDAP_URI}x" == "x" ]; then show_error LDAP_URI ; fi
  if [ "${LDAP_BASE_DN}x" == "x" ]; then show_error LDAP_BASE_DN ; fi
 fi
@@ -63,7 +63,6 @@ fi
 export ENABLE_OTP="$MFA_ENABLED"
 
 if [ "${MFA_BACKEND}x" == "x" ];                  then export MFA_BACKEND="file";                                   fi
-if [ "${MFA_MODE}x" == "x" ];                     then export MFA_MODE="append";                                    fi
 if [ "${MFA_TOTP_ATTRIBUTE}x" == "x" ];           then export MFA_TOTP_ATTRIBUTE="totpSecret";                      fi
 if [ "${MFA_TOTP_PREFIX}x" == "x" ];              then export MFA_TOTP_PREFIX="";                                   fi
 if [ "${MFA_GRACE_PERIOD_DAYS}x" == "x" ];        then export MFA_GRACE_PERIOD_DAYS="7";                            fi
@@ -71,15 +70,15 @@ if [ "${MFA_ENFORCEMENT_MODE}x" == "x" ];         then export MFA_ENFORCEMENT_MO
 if [ "${LDAP_LOGIN_ATTRIBUTE}x" == "x" ];         then export LDAP_LOGIN_ATTRIBUTE="uid";                           fi
 if [ "${LDAP_ENCRYPT_CONNECTION}x" == "x" ];      then export LDAP_ENCRYPT_CONNECTION="off";                        fi
 if [ "${LDAP_TLS}x" == "x" ];                     then export LDAP_TLS="false";                                     fi
-if [ "${LDAP_TLS}" == 'true' ];                   then export LDAP_ENCRYPT_CONNECTION="starttls";                   fi
+if [ "${LDAP_TLS,,}" == 'true' ];                  then export LDAP_ENCRYPT_CONNECTION="starttls";                   fi
 if [ "${LDAP_TLS_VALIDATE_CERT}x" == "x" ];       then export LDAP_TLS_VALIDATE_CERT="true";                        fi
 if [ "${KEY_LENGTH}x" == "x" ];                   then export KEY_LENGTH="2048";                                    fi
 if [ "${FAIL2BAN_ENABLED}x" == "x" ];             then export FAIL2BAN_ENABLED="false";                             fi
 if [ "${FAIL2BAN_MAXRETRIES}x" == "x" ];          then export FAIL2BAN_MAXRETRIES="3";                              fi
 if [ "${ACTIVE_DIRECTORY_COMPAT_MODE}x" == "x" ]; then export ACTIVE_DIRECTORY_COMPAT_MODE="false";                 fi
 
-if [ "$FAIL2BAN_ENABLED" == "true" ];             then export LOG_TO_STDOUT="false";                                fi
-if [ "$LOG_TO_STDOUT" == "true" ]; then
+if [ "${FAIL2BAN_ENABLED,,}" == "true" ];          then export LOG_TO_STDOUT="false";                                fi
+if [ "${LOG_TO_STDOUT,,}" == "true" ]; then
  LOG_FILE="/proc/1/fd/1"
 else
  LOG_FILE="${LOG_DIR}/openvpn.log"

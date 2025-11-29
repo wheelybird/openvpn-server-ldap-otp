@@ -4,7 +4,7 @@ echo "openvpn: creating server config"
 
 echo "# OpenVPN server configuration" > $CONFIG_FILE
 
-if [ "${OVPN_DEFAULT_SERVER}" == "true" ]; then
+if [ "${OVPN_DEFAULT_SERVER,,}" == "true" ]; then
  echo "server $OVPN_NETWORK" >> $CONFIG_FILE
 fi
 
@@ -96,7 +96,7 @@ reneg-sec 0
 
 Part02
 
-if [ "${USE_CLIENT_CERTIFICATE}" != "true" ] ; then
+if [ "${USE_CLIENT_CERTIFICATE,,}" != "true" ] ; then
   # Use PAM plugin for authentication
   cat <<Part03 >>$CONFIG_FILE
 plugin $(dpkg-query -L openvpn | grep openvpn-plugin-auth-pam.so | head -n1) openvpn
@@ -106,8 +106,8 @@ username-as-common-name
 Part03
 fi
 
-if [ "${OVPN_MANAGEMENT_ENABLE}" == "true" ]; then
- if [ "${OVPN_MANAGEMENT_NOAUTH}" == "true" ]; then
+if [ "${OVPN_MANAGEMENT_ENABLE,,}" == "true" ]; then
+ if [ "${OVPN_MANAGEMENT_NOAUTH,,}" == "true" ]; then
   if [ "${OVPN_MANAGEMENT_PASSWORD}x" != "x" ]; then
    echo "openvpn: warning: management password is set, but authentication is disabled"
   fi

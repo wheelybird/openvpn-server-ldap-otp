@@ -1,6 +1,6 @@
 #!/bin/bash
 
-if [ "$DEBUG" == "true" ]; then
+if [ "${DEBUG,,}" == "true" ]; then
   set -x
 fi
 set -e
@@ -28,7 +28,7 @@ echo
 echo "$(date +'%F %T') - Creating configuration files..."
 echo
 
-if [ "${USE_CLIENT_CERTIFICATE}" != "true" ] ; then
+if [ "${USE_CLIENT_CERTIFICATE,,}" != "true" ] ; then
   source "$CONFIGFILES/setup_otp.sh"
 fi 
 
@@ -36,7 +36,7 @@ source "$CONFIGFILES/create_server_config.sh"
 
 ###
 
-if [ "${FAIL2BAN_ENABLED}" == "true" ] ; then
+if [ "${FAIL2BAN_ENABLED,,}" == "true" ] ; then
   echo
   echo "$(date +'%F %T') - Starting fail2ban..."
   echo
@@ -53,7 +53,7 @@ echo "#----------  End of client.ovpn  ----------"
 echo
 echo "$(date +'%F %T') - Running OpenVPN..."
 echo
-if [ "${FAIL2BAN_ENABLED}" == "true" ] ; then
+if [ "${FAIL2BAN_ENABLED,,}" == "true" ] ; then
   openvpn --daemon --config $OPENVPN_DIR/server.conf
   exec tail -f $LOG_FILE
 else
