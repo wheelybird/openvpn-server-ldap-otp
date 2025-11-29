@@ -30,7 +30,7 @@ This OpenVPN server works best as part of an integrated solution:
 
 **Benefits of the complete stack:**
 - Users can scan QR codes and set up MFA themselves
-- Admins can enforce MFA by group membership
+- Self-service MFA enrolment without admin intervention
 - Grace periods allow users time to enrol before VPN access is restricted
 - No need to SSH into servers to manage OTP secrets
 
@@ -115,10 +115,10 @@ Store TOTP secrets in LDAP for centralised management.
 **Benefits:**
 - Self-service enrolment via web interface
 - Admin oversight of MFA adoption
-- Group-based MFA requirements
 - Grace periods for new users
 - Backup codes stored in LDAP
 - Standalone PAM module with direct LDAP integration
+- Configurable enforcement modes (strict, graceful, warn-only)
 
 See [AUTHENTICATION_MODES.md](AUTHENTICATION_MODES.md) for detailed information.
 
@@ -164,16 +164,45 @@ Simple LDAP password authentication without two-factor. Uses the `pam_ldap_totp_
 
 ### 4. Client certificate authentication
 
-Traditional X.509 certificate-based authentication (no LDAP required).
+Traditional X.509 certificate-based authentication (no LDAP required).  Only one certificate is generated, so for more than one user to connect to the VPN you'd need to share the certificate.  This isn't recommended.
 
 **Configuration:**
 ```bash
 -e "USE_CLIENT_CERTIFICATE=true"
 ```
 
-**User experience:** Users connect with certificate, no password needed.
+**User experience:** User connect with certificate, no password needed.
 
-**Use case:** Development, testing, or traditional certificate-based deployments.
+**Use case:** Development, testing, or for a single-user VPN.
+
+---
+
+## MFA enforcement
+
+When `MFA_ENABLED=true`, MFA is required for **all users** authenticating to this OpenVPN server.
+
+### Enforcement modes
+
+The `MFA_ENFORCEMENT_MODE` variable (default: `graceful`) controls how users **without enrolled TOTP secrets** are handled:
+
+| Mode | Behaviour | Use case |
+|------|-----------|----------|
+| `strict` | Users without TOTP secrets **cannot** authenticate | Production - require MFA for all users |
+| `graceful` | Users without secrets can authenticate during grace period | Migration - give users time to enrol |
+| `warn_only` | Users without secrets can authenticate (warning logged) | Testing - MFA optional |
+
+**Grace period:** With `MFA_ENFORCEMENT_MODE=graceful` (the default), users have `MFA_GRACE_PERIOD_DAYS` (default: 7) from account creation to enrol in MFA before authentication is denied.
+
+### Restricting access by group
+
+Use `LDAP_FILTER` to control which LDAP users can authenticate:
+
+```bash
+# Only allow vpn-users group
+-e "LDAP_FILTER=(memberOf=cn=vpn-users,ou=groups,dc=example,dc=com)"
+```
+
+**Note:** When MFA is enabled, it applies to all users who pass the LDAP filter. To require MFA for some users but not others, deploy separate OpenVPN instances with different MFA settings and LDAP filters.
 
 ## Configuration
 
@@ -212,10 +241,17 @@ Traditional X.509 certificate-based authentication (no LDAP required).
 | `MFA_BACKEND` | `file` | MFA storage backend: `ldap` or `file` |
 | `MFA_TOTP_ATTRIBUTE` | `totpSecret` | LDAP attribute storing TOTP secret (LDAP backend only) |
 | `MFA_MODE` | `append` | Authentication mode (`append` only for OpenVPN) |
-| `MFA_GRACE_PERIOD_DAYS` | `7` | Days before enforcing MFA for new users |
-| `MFA_ENFORCEMENT_MODE` | `graceful` | Enforcement: `strict`, `graceful`, `warn_only` |
+| `MFA_GRACE_PERIOD_DAYS` | `7` | Grace period for new users (days) |
+| `MFA_ENFORCEMENT_MODE` | `graceful` | Enforcement mode (see below) |
 
 **Backwards compatibility:** Both `MFA_ENABLED` and `ENABLE_OTP` work. If both are set, `MFA_ENABLED` takes precedence.
+
+**Enforcement modes:**
+- `graceful` (default): Users without secrets can authenticate during grace period
+- `strict`: Users without TOTP secrets cannot authenticate
+- `warn_only`: Users without secrets can authenticate (warning logged)
+
+See [MFA enforcement](#mfa-enforcement) section for details.
 
 ### Network Settings
 
@@ -426,7 +462,6 @@ Install NTP/chrony on the host.
 
 ## Documentation
 
-- **[AUTHENTICATION_MODES.md](AUTHENTICATION_MODES.md)** - Detailed authentication mode documentation
 - **[LDAP TOTP Schema](https://github.com/wheelybird/ldap-totp-schema)** - Schema installation guide
 - **[Luminary](https://github.com/wheelybird/luminary)** - The Luminary LDAP account manager with self-service password/MFA support
 - **[LDAP TOTP PAM Module](https://github.com/wheelybird/pam-ldap-totp-auth)** - PAM module documentation

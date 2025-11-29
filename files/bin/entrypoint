@@ -10,6 +10,11 @@ CONFIGFILES="/opt/configuration"
 source "$CONFIGFILES/set_defaults.sh"
 
 echo
+echo "$(date +'%F %T') - Validating environment variables..."
+echo
+source "$CONFIGFILES/validate_env.sh"
+
+echo
 echo "$(date +'%F %T') - Setting up networking..."
 echo
 source "$CONFIGFILES/setup_networking.sh"
