@@ -4,8 +4,6 @@ A Docker container providing OpenVPN with LDAP authentication and optional two-f
 
 ## Why use this?
 
-### Why use this
-
 The goal of this project is to build a Docker container that provides an [OpenVPN](https://openvpn.net) server which authenticates users against an existing [OpenLDAP](https://www.openldap.org) directory, with optional two-factor authentication using TOTP (via liboath).   
 
 [OpenVPN](https://openvpn.net) is a mature, free, and open-source VPN solution known for its strong security, flexibility, and active development since 2001. It supports a wide range of operating systems through well-maintained client applications.   
