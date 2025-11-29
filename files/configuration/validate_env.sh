@@ -350,4 +350,4 @@ if [ $VALIDATION_ERRORS -gt 0 ]; then
 fi
 
 info "Environment variable validation successful!"
-exit 0
+return 0
