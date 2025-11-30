@@ -71,44 +71,7 @@ MFA_GRACE_PERIOD_DAYS=14       # days for new users to enroll
 
 #### LDAP Schema Requirements
 
-For LDAP-backed TOTP, your LDAP schema must support the TOTP attribute:
-
-```ldif
-# Example LDAP schema
-attributetype ( 1.3.6.1.4.1.54392.1.1.1
-  NAME 'totpSecret'
-  DESC 'TOTP shared secret (Base32 encoded)'
-  EQUALITY caseExactMatch
-  SYNTAX 1.3.6.1.4.1.1466.115.121.1.15
-  SINGLE-VALUE )
-
-objectclass ( 1.3.6.1.4.1.54392.1.2.1
-  NAME 'totpUser'
-  DESC 'User with TOTP/MFA capability'
-  AUXILIARY
-  MAY ( totpSecret $ totpEnrolledDate $ totpStatus ) )
-```
-
-See [ldap-totp-schema](https://github.com/wheelybird/ldap-totp-schema) for complete schema definitions.
-
-#### Authentication Flow
-
-**Append mode (OpenVPN):**
-1. User enters: `password` + `TOTP_CODE`
-2. Example: password is `MySecurePass123`, TOTP code is `456789`
-3. User inputs: `MySecurePass123456789`
-4. PAM module splits password and TOTP code for validation
-
-**File-based backend:**
-- TOTP secrets stored in `/etc/openvpn/otp/<username>`
-- Uses Google Authenticator format
-- Requires volume mount for persistence
-
-**LDAP backend:**
-- TOTP secrets stored in LDAP user object
-- Centralized management via web UI
-- No local storage required
-- Supports grace periods and enforcement modes
+For LDAP-backed TOTP, your LDAP schema must support the TOTP attribute.  See [ldap-totp-schema](https://github.com/wheelybird/ldap-totp-schema) for complete schema definitions.
 
 ### Contributors
 
