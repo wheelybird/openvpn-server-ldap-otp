@@ -1,6 +1,6 @@
 #!/bin/bash
 
-if [ "$DEBUG" == "true" ]; then
+if [ "${DEBUG,,}" == "true" ]; then
   set -x
 fi
 set -e
@@ -8,6 +8,11 @@ set -e
 CONFIGFILES="/opt/configuration"
 
 source "$CONFIGFILES/set_defaults.sh"
+
+echo
+echo "$(date +'%F %T') - Validating environment variables..."
+echo
+source "$CONFIGFILES/validate_env.sh"
 
 echo
 echo "$(date +'%F %T') - Setting up networking..."
@@ -23,8 +28,7 @@ echo
 echo "$(date +'%F %T') - Creating configuration files..."
 echo
 
-if [ "${USE_CLIENT_CERTIFICATE}" != "true" ] ; then
-  source "$CONFIGFILES/setup_ldap.sh"
+if [ "${USE_CLIENT_CERTIFICATE,,}" != "true" ] ; then
   source "$CONFIGFILES/setup_otp.sh"
 fi 
 
@@ -32,7 +36,7 @@ source "$CONFIGFILES/create_server_config.sh"
 
 ###
 
-if [ "${FAIL2BAN_ENABLED}" == "true" ] ; then
+if [ "${FAIL2BAN_ENABLED,,}" == "true" ] ; then
   echo
   echo "$(date +'%F %T') - Starting fail2ban..."
   echo
@@ -47,15 +51,9 @@ echo "#---------- Start of client.ovpn ----------"
 echo "#----------  End of client.ovpn  ----------"
 
 echo
-echo "$(date +'%F %T') - Starting NSCLD... (ignore any NSS_LDAP module warnings)"
-echo
-nslcd
-
-
-echo
 echo "$(date +'%F %T') - Running OpenVPN..."
 echo
-if [ "${FAIL2BAN_ENABLED}" == "true" ] ; then
+if [ "${FAIL2BAN_ENABLED,,}" == "true" ] ; then
   openvpn --daemon --config $OPENVPN_DIR/server.conf
   exec tail -f $LOG_FILE
 else

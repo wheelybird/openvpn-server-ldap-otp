@@ -1,129 +1,488 @@
-## OpenVPN container
+# OpenVPN server with LDAP authentication and MFA
 
-This will create an OpenVPN server. You can either use LDAP for authentication (with optional 2FA provided by Google Auth) or create a client certificate.   
-The container will automatically generate the certificates on the first run (using a 2048 bit key) which means that *the initial run could take several minutes* whilst keys are generated.  The client configuration will be output in the logs.
-A volume is created for data persistence.
+A Docker container providing OpenVPN with LDAP authentication and optional two-factor authentication (TOTP/MFA). Part of an integrated suite of tools for enterprise-grade VPN access with centralised user management.
 
-### A note about compression
+## Why use this?
 
-Compression is no longer enabled by default for backwards-compatibility.  However the backwards-compatible option `compress migrate` has been added to the server configuration.  This simply allows the server to ignore the client's request for compression.  More information on why compression is disabled can be found [on the OpenVPN website](https://community.openvpn.net/openvpn/wiki/Compression).
+The goal of this project is to build a Docker container that provides an [OpenVPN](https://openvpn.net) server which authenticates users against an existing [OpenLDAP](https://www.openldap.org) directory, with optional two-factor authentication using TOTP (via liboath).   
+
+[OpenVPN](https://openvpn.net) is a mature, free, and open-source VPN solution known for its strong security, flexibility, and active development since 2001. It supports a wide range of operating systems through well-maintained client applications.   
+
+[OpenLDAP](https://www.openldap.org) is a robust open-source implementation of the Lightweight Directory Access Protocol (LDAP), widely used for centralised authentication, authorisation, and user information management. It provides a flexible, standards-based system for managing directory data across diverse environments.   
+
+This project extends that functionality by allowing OpenVPN to verify users’ TOTP keys and related metadata directly from OpenLDAP. Managing these credentials within the same directory simplifies administration, ensures consistent access control, and improves security by keeping all authentication data in a single, authoritative source.
+
+- **Centralised authentication**: Use your existing LDAP directory for VPN access
+- **Optional MFA/2FA**: Add time-based one-time passwords (TOTP) for enhanced security
+- **Enterprise ready**: Supports fail2ban, custom routing, and advanced networking
+- **Docker-native**: Easy deployment with persistent configuration
+
+## Complete solution stack
+
+This OpenVPN server works best as part of an integrated solution:
+
+| Component | Purpose | Repository |
+|-----------|---------|------------|
+| **OpenVPN server** (this project) | VPN gateway with LDAP + MFA authentication | [openvpn-server-ldap-otp](https://github.com/wheelybird/openvpn-server-ldap-otp) |
+| **Luminary** | A web UI for self-service MFA enrolment | [luminary](https://github.com/wheelybird/luminary) |
+
+**Benefits of the complete stack:**
+- Users can scan QR codes and set up MFA themselves
+- Self-service MFA enrolment without admin intervention
+- Grace periods allow users time to enrol before VPN access is restricted
+- No need to SSH into servers to manage OTP secrets
+
+## Quick start
+
+### Basic setup (LDAP authentication only)
+
+```bash
+docker run \
+  --name openvpn \
+  --cap-add=NET_ADMIN \
+  -p 1194:1194/udp \
+  -v /path/to/data:/etc/openvpn \
+  -e "OVPN_SERVER_CN=vpn.example.com" \
+  -e "LDAP_URI=ldap://ldap.example.com" \
+  -e "LDAP_BASE_DN=dc=example,dc=com" \
+  -e "LDAP_BIND_USER_DN=cn=pam-totp-ldap-auth,ou=services,dc=example,dc=com" \
+  -e "LDAP_BIND_USER_PASS=password" \
+  -d \
+  wheelybird/openvpn-ldap-otp:v2.0.0
+```
+
+**NOTE:** LDAP_BIND_USER should be the DN for an LDAP account that can access the user's LDAP attributes.  If you don't have a specific service account set up for this then you can use the administrator base DN, but this isn't recommended.  The example uses the example service account from the [LDAP TOTP schema](https://github.com/wheelybird/ldap-totp-schema) repository. 
+
+### With MFA (recommended)
+
+First, install the [LDAP TOTP schema](https://github.com/wheelybird/ldap-totp-schema) in your LDAP directory, then:
+
+```bash
+docker run \
+  --name openvpn \
+  --cap-add=NET_ADMIN \
+  -p 1194:1194/udp \
+  -v /path/to/data:/etc/openvpn \
+  -e "OVPN_SERVER_CN=vpn.example.com" \
+  -e "LDAP_URI=ldap://ldap.example.com" \
+  -e "LDAP_BASE_DN=dc=example,dc=com" \
+  -e "LDAP_BIND_USER_DN=cn=pam-totp-ldap-auth,ou=services,dc=example,dc=com" \
+  -e "LDAP_BIND_USER_PASS=your_service_account_password" \
+  -e "MFA_ENABLED=true" \
+  -e "MFA_BACKEND=ldap" \
+  -d \
+  wheelybird/openvpn-ldap-otp:v2.0.0
+```
+
+Deploy [Luminary](https://github.com/wheelybird/luminary) to give users a friendly web interface for MFA enrolment.
+
+### Get client configuration
+
+```bash
+docker exec -ti openvpn show-client-config > client.ovpn
+```
+
+Distribute this `.ovpn` file to your users. When connecting with MFA enabled, users enter: `password123456` (password + 6-digit TOTP code concatenated).
+
+## Authentication modes
+
+**NOTE:** This container uses the (`pam_ldap_totp_auth`) PAM module for LDAP and MFA authentication. The module can operate in three modes controlled by environment variables. MFA is implemented using TOTP (Time-based One-Time Password).
+
+### 1. LDAP-backed MFA (recommended)
+Store TOTP secrets in LDAP for centralised management.
+
+**Prerequisites:**
+1. Install [LDAP TOTP Schema](https://github.com/wheelybird/ldap-totp-schema) in your LDAP directory
+2. Optionally deploy [Luminary](https://github.com/wheelybird/luminary) for self-service
+
+**Configuration:**
+```bash
+-e "MFA_ENABLED=true"
+-e "MFA_BACKEND=ldap"
+```
+
+**Note:** This implementation uses TOTP (Time-based One-Time Password) as the MFA method.
+
+**NOTE:** you can configure which LDAP attributes store TOTP data, so if you're unable to install the suggested schema it'll still be possible to store the data in LDAP (but not recommended).
+
+**User experience:**
+- Users enrol via web UI (scan QR code with authenticator app)
+- Users enter `password123456` when connecting to VPN
+- Backup codes available for emergency access
+
+**Benefits:**
+- Self-service enrolment via web interface
+- Admin oversight of MFA adoption
+- Grace periods for new users
+- Backup codes stored in LDAP
+- Standalone PAM module with direct LDAP integration
+- Configurable enforcement modes (strict, graceful, warn-only)
+
+See [AUTHENTICATION_MODES.md](AUTHENTICATION_MODES.md) for detailed information.
+
+---
+
+### 2. File-based MFA (traditional)
+
+Uses google-authenticator with file-based secret storage. The `pam_ldap_totp_auth` module handles LDAP password authentication (set `totp_enabled=false`).
+
+**Configuration:**
+```bash
+-e "MFA_ENABLED=true"
+# MFA_BACKEND defaults to 'file' if not set
+```
+
+**Note:** File-based mode uses google-authenticator TOTP implementation.
+
+**Setup:** `docker exec -ti openvpn add-otp-user username`
+
+**User experience:** Users enter `password123456` (password + TOTP code).
+
+**How it works:**
+- `pam_google_authenticator` validates the TOTP code from file
+- `pam_ldap_totp_auth` (with TOTP disabled) validates LDAP password
+- Both must succeed
+
+---
+
+### 3. LDAP password only (No MFA)
+
+Simple LDAP password authentication without two-factor. Uses the `pam_ldap_totp_auth` module with `totp_enabled=false`.
+
+**Configuration:**
+```bash
+-e "LDAP_URI=ldap://ldap.example.com"
+-e "LDAP_BASE_DN=dc=example,dc=com"
+# Do NOT set MFA_ENABLED=true (or leave it as default 'false')
+```
+
+**Note:** Not recommended for production. Enable MFA for security.
+
+---
+
+### 4. Client certificate authentication
+
+Traditional X.509 certificate-based authentication (no LDAP required).  Only one certificate is generated, so for more than one user to connect to the VPN you'd need to share the certificate.  This isn't recommended.
+
+**Configuration:**
+```bash
+-e "USE_CLIENT_CERTIFICATE=true"
+```
+
+**User experience:** User connect with certificate, no password needed.
+
+**Use case:** Development, testing, or for a single-user VPN.
+
+---
+
+## MFA enforcement
+
+When `MFA_ENABLED=true`, MFA is required for **all users** authenticating to this OpenVPN server.
+
+### Enforcement modes
+
+The `MFA_ENFORCEMENT_MODE` variable (default: `graceful`) controls how users **without enrolled TOTP secrets** are handled:
+
+| Mode | Behaviour | Use case |
+|------|-----------|----------|
+| `strict` | Users without TOTP secrets **cannot** authenticate | Production - require MFA for all users |
+| `graceful` | Users without secrets can authenticate during grace period | Migration - give users time to enrol |
+| `warn_only` | Users without secrets can authenticate (warning logged) | Testing - MFA optional |
+
+**Grace period:** With `MFA_ENFORCEMENT_MODE=graceful` (the default), users have `MFA_GRACE_PERIOD_DAYS` (default: 7) from account creation to enrol in MFA before authentication is denied.
+
+### Restricting access by group
+
+Use `LDAP_FILTER` to control which LDAP users can authenticate:
+
+```bash
+# Only allow vpn-users group
+-e "LDAP_FILTER=(memberOf=cn=vpn-users,ou=groups,dc=example,dc=com)"
+```
+
+**Note:** When MFA is enabled, it applies to all users who pass the LDAP filter. To require MFA for some users but not others, deploy separate OpenVPN instances with different MFA settings and LDAP filters.
 
 ## Configuration
 
-Configuration is via environmental variables.  Here's a list, along with the default value in brackets:
+### Required settings
 
-### Mandatory settings:
+| Variable | Description | Example |
+|----------|-------------|---------|
+| `OVPN_SERVER_CN` | Server hostname (must be resolvable by clients) | `vpn.example.com` |
 
- * `OVPN_SERVER_CN`:  The CN that will be used to generate the certificate and the endpoint hostname the client will use to connect to the OpenVPN server. e.g. `openvpn.example.org`.  Note that changing this when restarting the container will cause the certificates to be regenerated, so you'll need to use the newly generated client configuration.
+### LDAP settings
 
-### Mandatory when `USE_CLIENT_CERTIFICATE` is false (the default):
+| Variable | Required | Description | Example |
+|----------|----------|-------------|---------|
+| `LDAP_URI` | Yes* | LDAP server URI | `ldap://ldap.example.com` or `ldaps://ldap.example.com:636` |
+| `LDAP_BASE_DN` | Yes* | Base DN for user searches | `dc=example,dc=com` |
+| `LDAP_BIND_USER_DN` | Recommended | DN for bind user (if anonymous bind disabled) | `cn=readonly,dc=example,dc=com` |
+| `LDAP_BIND_USER_PASS` | Recommended | Password for bind user | `supersecret` |
+| `LDAP_FILTER` | No | Additional LDAP filter | `(memberOf=cn=vpn-users,ou=groups,dc=example,dc=com)` |
+| `LDAP_LOGIN_ATTRIBUTE` | No | Attribute to match username (default: `uid`) | `sAMAccountName` for AD |
+| `LDAP_ENCRYPT_CONNECTION` | No | TLS mode: `on`, `starttls`, or `off` | `starttls` |
+| `LDAP_TLS_VALIDATE_CERT` | No | Validate TLS certificate (default: `true`) | `false` for self-signed |
+| `LDAP_TLS_CA_CERT` | No | CA certificate contents for TLS | Contents of CA cert file |
 
- * `LDAP_URI`: The URI used to connect to the LDAP server.  e.g. `ldap://ldap.example.org`.
- * `LDAP_BASE_DN`: The base DN used for LDAP lookups. e.g. `dc=example,dc=org`.
+*Not required if `USE_CLIENT_CERTIFICATE=true`
 
----
-**Tip**: The LDAP authentication module authenticates the user by searching for their LDAP entry and if it can't return that record authentication fails.  Many LDAP servers don't allow anonymous binds/searches, so set `LDAP_BIND_USER_DN` (and `LDAP_BIND_USER_PASS`) as a user that has permission to search the directory.
+**Active Directory users:** Set `-e "ACTIVE_DIRECTORY_COMPAT_MODE=true"` to automatically configure appropriate settings.
 
----
+### MFA settings
 
-### Optional settings:
+**Note:** MFA is implemented using TOTP (Time-based One-Time Password).
 
- * `USE_CLIENT_CERTIFICATE` (false): If this is set to `true` then the container will generate a client key and certificate and won't use LDAP (or OTP) for authentication.  See [Using a client certificate](#using_a_client_certificate) for more information.
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `MFA_ENABLED` | `false` | Enable multi-factor authentication (using TOTP) |
+| `ENABLE_OTP` | `false` | Alias for `MFA_ENABLED` (backwards compatibility) |
+| `MFA_BACKEND` | `file` | MFA storage backend: `ldap` or `file` |
+| `MFA_TOTP_ATTRIBUTE` | `totpSecret` | LDAP attribute storing TOTP secret (LDAP backend only) |
+| `MFA_GRACE_PERIOD_DAYS` | `7` | Grace period for new users (days) |
+| `MFA_ENFORCEMENT_MODE` | `graceful` | Enforcement mode (see below) |
 
- * `LDAP_BIND_USER_DN` (_undefined_):  If your LDAP server doesn't allow anonymous binds, use this to specify a user DN to use for lookups.
- * `LDAP_BIND_USER_PASS` (_undefined_): The password for the bind user.
- * `LDAP_FILTER` (`(objectClass=posixAccount)`): A filter to apply to LDAP lookups.  This allows you to limit the lookup results and thereby who will be authenticated.  e.g. `(memberOf=cn=staff,cn=groups,cn=accounts,dc=example,dc=org)`.  See [LDAP authentication filters](#ldap_authentication_filters) for more information.
- * `LDAP_LOGIN_ATTRIBUTE` (uid):  The LDAP attribute used for the authentication lookup, i.e. which attribute is matched to the username when you log into the OpenVPN server.
- * `LDAP_ENCRYPT_CONNECTION` (off): Options:  `on|starttls|off`. This sets the 'ssl' option in nslcd.  `on` will connect to the LDAP server over TLS (SSL).  `starttls` will initially connect unencrypted and negotiate a TLS connection if one is available.  `off` will disable SSL/TLS.
- * `LDAP_TLS` (false):  Changes (overrides) `LDAP_ENCRYPT_CONNECTION` to `starttls` (this setting is for backwards-compatibility with previous versions).
- * `LDAP_TLS_VALIDATE_CERT` (true):  Set to 'true' to ensure the TLS certificate can be validated.  'false' will ignore certificate issues - you might need this if you're using a self-signed certificate and not passing in the CA certificate.
- * `LDAP_TLS_CA_CERT` (_undefined_): The contents of the CA certificate file for the LDAP server.  You'll need this to enable TLS when using self-signed certificates.
- * `LDAP_DISABLE_BIND_SEARCH` (false): Set to 'true' to stop nslcd searching for the user using their own credentials on login. By default nslcd does this as an extra verification step but some LDAP implementations disable searches for unprivileged users by default. Note that you should ensure your LDAP server handles invalid credentials properly before enabling this.
+**Backwards compatibility:** Both `MFA_ENABLED` and `ENABLE_OTP` work. If both are set, `MFA_ENABLED` takes precedence.
 
- * `ACTIVE_DIRECTORY_COMPAT_MODE` (false): Sets `LDAP_LOGIN_ATTRIBUTE` to `sAMAccountName` and `LDAP_FILTER` to `(objectClass=user)`, which allows LDAP lookups to work with Active Directory.  This will override any value you've manually set for those settings.
+**Enforcement modes:**
+- `graceful` (default): Users without secrets can authenticate during grace period
+- `strict`: Users without TOTP secrets cannot authenticate
+- `warn_only`: Users without secrets can authenticate (warning logged)
 
- * `OVPN_TLS_CIPHERS` (TLS-ECDHE-ECDSA-WITH-CHACHA20-POLY1305-SHA256:TLS-ECDHE-RSA-WITH-CHACHA20-POLY1305-SHA256:TLS-ECDHE-ECDSA-WITH-AES-128-GCM-SHA256:TLS-ECDHE-RSA-WITH-AES-128-GCM-SHA256): Determines which ciphers will be set for `tls-cipher` in the openvpn config file.
- * `OVPN_TLS_CIPHERSUITES` (TLS-AES-256-GCM-SHA384:TLS-CHACHA20-POLY1305-SHA256:TLS-AES-128-GCM-SHA256:TLS-AES-128-CCM-8-SHA256:TLS-AES-128-CCM-SHA256): Determines which ciphers will be set for `tls-ciphersuites` in the openvpn config file. (Used for TLS 1.3)
- * `OVPN_PORT` (1194): Sets the port that OpenVPN listens on _inside_ the Docker container.  To get the container to listen on the port too, update the Docker `-p` argument to match (e.g., if you set `OVPN_PORT=1196`, use `-p 1196:1196`).  The client configuration will be set to connect to this port too.
- * `OVPN_PROTOCOL` (udp):  The protocol OpenVPN uses.  Either `udp` or `tcp`.
- * `OVPN_INTERFACE_NAME` (tun):  The name of the network tunnel interface OpenVPN uses.
- * `OVPN_NETWORK` (10.50.50.0 255.255.255.0):  The network that will be used the the VPN in `network_address netmask` format.
- * `OVPN_ROUTES` (_undefined_):  A comma-separated list of routes that OpenVPN will push to the client, in `network_address netmask` format.  e.g. `172.16.10.0 255.255.255.0,172.17.20.0 255.255.255.0`.  If NAT isn't enabled then you'll need to ensure that destinations on the network have the return route set for the OpenVPN network.  The default is to pass all traffic through the VPN tunnel (which will also enable NAT).
- * `OVPN_NAT` (true):  If set to true then the client traffic will be masqueraded by the OpenVPN server.  This allows you to connect to targets on the other side of the tunnel without needing to add return routes to those targets (the targets will see the OpenVPN server's IP rather than the client's).
- * `OVPN_DNS_SERVERS` (_undefined_):  A comma-separated list of DNS nameservers to push to the client.  Set this if the remote network has its own DNS or if you route all traffic through the VPN and the remote side blocks access to external name servers.  Note that not all OpenVPN clients will automatically use these nameservers.  e.g. `8.8.8.8,8.8.4.4`
- * `OVPN_DNS_SEARCH_DOMAIN` (_undefined_):  If using the remote network's DNS server then push the search domain (or domains) to the client.  This will allow the client to lookup by hostnames rather than fully-qualified domain names.  i.e. setting this to `example.org` will allow `ping remotehost` instead of `ping remotehost.example.org`.  Separate multiple domains with commas, e.g. `example.org,wheelybird.com,test.net`.
- * `OVPN_REGISTER_DNS` (false): Include `register-dns` in the client config, which is a Windows client option that can force some clients to load the DNS configuration.
- * `OVPN_IDLE_TIMEOUT` (_undefined_): The number of seconds before an idle VPN connection will be disconnected.  This also prevents the client reconnecting due to a keepalive heartbeat timeout.  You might want to use this setting for compliance reasons (e.g. PCI_DSS).  See [Keepalive settings](#keepalive_settings) for more information.
- * `OVPN_VERBOSITY` (4):  The verbosity of OpenVPN's logs.
- * `OVPN_DEFAULT_SERVER` (true): If true, the OpenVPN `server <network> <netmask>` directive will be generated in the server configuration file. If `false`, you have to configure the server yourself by using `OVPN_EXTRA`.
- * `OVPN_EXTRA` (_undefined_): Additional configuration options which will be appended verbatim to the server configuration.
- * `IPTABLES_EXTRA_FILE` (_undefined_): Path of a file containing additional network rules which will be appended to the iptables configuration. Uses the `iptables-save` / `iptables-restore` syntax.
+See [MFA enforcement](#mfa-enforcement) section for details.
 
- * `OVPN_MANAGEMENT_ENABLE` (false): Enable the TCP management interface on port 5555. This service allows raw TCP and telnet connections, check [the OpenVPN documentation](https://openvpn.net/community-resources/management-interface/) for further information.
- * `OVPN_MANAGEMENT_NOAUTH` (false): Allow access to the management interface without any authentication. Note that this option should only be enabled if the management port is not accessible to the internet.
- * `OVPN_MANAGEMENT_PASSWORD` (_undefined_): The password for the management interface. This has to be set if the interface is enabled and the `OVPN_MANAGEMENT_NOAUTH` option is not set. Note that this password is stored in clear-text internally.
+### Network Settings
 
- * `REGENERATE_CERTS` (false):  Force the recreation the certificates.
- * `KEY_LENGTH` (2048):  The length of the server key in bits.  Higher is more secure, but will take longer to generate.  e.g. `4096`
- * `DEBUG` (false):  Add debugging information to the logs.
- * `LOG_TO_STDOUT` (true):  Sends *OpenVPN* logs directly to stdout.  If this is set to `false` then the logs are written to `/etc/openvpn/logs/openvpn.log` first, although this file is tailed to stdout once OpenVPN has started.  If `FAIL2BAN_ENABLED` is `true` then this is set to `false` because *fail2ban* needs to be able to parse the *OpenVPN* logs. 
- * `ENABLE_OTP` (false):  Activate two factor authentication using Google Auth.  See [Using OTP](#using_otp) for more information.
- 
- * `FAIL2BAN_ENABLED` (false):  Set to `true` to enable the fail2ban daemon (protection against brute force attacks). This will also set `LOG_TO_STDOUT` to `false`.
- * `FAIL2BAN_MAXRETRIES` (3):  The number of attempts that fail2ban allows before banning an ip address.
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `OVPN_PORT` | `1194` | OpenVPN listen port (update Docker `-p` to match) |
+| `OVPN_PROTOCOL` | `udp` | Protocol: `udp` or `tcp` |
+| `OVPN_NETWORK` | `10.50.50.0 255.255.255.0` | VPN network address and netmask |
+| `OVPN_ROUTES` | All traffic | Routes to push to clients (format: `192.168.1.0 255.255.255.0,10.0.0.0 255.255.0.0`) |
+| `OVPN_NAT` | `true` | Enable NAT/masquerading for client traffic |
+| `OVPN_DNS_SERVERS` | None | DNS servers to push (comma-separated) |
+| `OVPN_DNS_SEARCH_DOMAIN` | None | DNS search domains (comma-separated) |
+
+### Security settings
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `KEY_LENGTH` | `2048` | Certificate key length (higher = more secure, slower) |
+| `OVPN_TLS_CIPHERS` | Modern ciphers | TLS 1.2 cipher list |
+| `OVPN_TLS_CIPHERSUITES` | Modern suites | TLS 1.3 cipher suites |
+| `OVPN_IDLE_TIMEOUT` | None | Disconnect idle connections (seconds) |
+| `REGENERATE_CERTS` | `false` | Force certificate regeneration |
+
+### Fail2ban protection
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `FAIL2BAN_ENABLED` | `false` | Enable brute-force protection |
+| `FAIL2BAN_MAXRETRIES` | `3` | Failed attempts before ban |
+
+### Management interface
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `OVPN_MANAGEMENT_ENABLE` | `false` | Enable TCP management interface on port 5555 |
+| `OVPN_MANAGEMENT_NOAUTH` | `false` | Allow access without authentication |
+| `OVPN_MANAGEMENT_PASSWORD` | None | Management interface password |
+
+### Advanced settings
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `OVPN_DEFAULT_SERVER` | `true` | Auto-generate server network config |
+| `OVPN_EXTRA` | None | Additional OpenVPN config directives (raw text) |
+| `OVPN_VERBOSITY` | `4` | Log verbosity (0-11) |
+| `DEBUG` | `false` | Enable debug logging |
+| `LOG_TO_STDOUT` | `true` | Send OpenVPN logs to stdout |
+
+**Note:** You can add any extra server configuration for OpenVPN using `OVPN_EXTRA`.  This should be a string with escaped newlines and quotes.  For example: `OVPN_EXTRA="sndbuf 393216\nrcvbuf 393216\ntxqueuelen 1000"`
 
 ## Data persistence
 
-Important configuration and data is kept in the container's `/etc/openvpn` directory, so this path should be mounted as a volume or a bind mount.  See the [Docker documentation](https://docs.docker.com/storage/volumes/) for more information.  In the example below, we mount it as a bind mount to a directory on the host.
+Mount `/etc/openvpn` as a volume to persist:
+- Generated certificates and keys
+- Server configuration
+- OTP secrets (if using file-based mode)
+- Client configuration
 
-## Launching the OpenVPN daemon container:  
-```
-docker run \
-           --name openvpn \
-           --volume /path/on/host:/etc/openvpn \
-           --detach=true \
-           -p 1194:1194/udp \
-           -e "OVPN_SERVER_CN=myserver.mycompany.com" \
-           -e "LDAP_URI=ldap://ldap.mycompany.com" \
-           -e "LDAP_BASE_DN=dc=mycompany,dc=com" \
-           -e "LDAP_BIND_USER_DN=cn=example,dc=mycompany,dc=com" \
-           -e "LDAP_BIND_USER_PASS=examplepass" \
-           --cap-add=NET_ADMIN \
-           wheelybird/openvpn-ldap-otp:v1.8
+```bash
+-v /path/on/host:/etc/openvpn
 ```
 
-* `--cap-add=NET_ADMIN` is necessary; the container needs to create the tunnel device and create iptable rules.
+**Important:** The first run generates certificates (2048-bit key takes 2-10 minutes). Subsequent starts are much faster.
 
-* Extract the client configuration (along with embedded certificates) from the running container:
-`docker exec -ti openvpn show-client-config`
+## Security best practices
 
-## Using OTP
+### TLS/SSL for LDAP
+```bash
+-e "LDAP_ENCRYPT_CONNECTION=starttls"
+-e "LDAP_TLS_VALIDATE_CERT=true"
+-e "LDAP_TLS_CA_CERT=$(cat /path/to/ca.crt)"
+```
 
-If you set `ENABLE_OTP=true` then OpenVPN will be configured to use two-factor authentication: you'll need your LDAP password and a passcode in order to connect.  The passcode is provided by the Google Authenticator app.  You'll need to download that from your app store.   
-You need to set up each user with 2FA.  To do this you need to log into the host that's running the OpenVPN container and run   
-`docker exec -ti openvpn add-otp-user <username>` where `username` matches the LDAP username.   
-Give the generated URL and emergency codes to the user.  To log in the user must append the code generated by Google Authenticator to their password.  So if their password is `verysecurepassword` and the Authenticator code is `934567` then they need to enter `verysecurepassword934567` at the password prompt.   
-The server-side OTP configuration is stored under /etc/openvpn, so ensure that's mounted as a volume otherwise the configuration will be lost when the container is restarted.   
-Note:  OTP will only work with LDAP and can't be enabled if you're using the client certificate.
+### Enable MFA
+```bash
+-e "MFA_ENABLED=true"
+-e "MFA_BACKEND=ldap"
+```
 
-## Using a client certificate
+**Note:** `MFA_ENABLED` replaces the deprecated `ENABLE_OTP` variable. Both work, but `MFA_ENABLED` takes precedence if both are set. The MFA implementation uses TOTP (Time-based One-Time Password).
 
-Set `USE_CLIENT_CERTIFICATE=true` if you want to use a client certificate instead of LDAP authentication.  This will create a single client key and certificate.  The server will be configured to accept multiple clients using the same certificate.   
-This is useful for testing out your VPN server and isn't intended as an especially secure VPN setup.  If you want to use this for purposes other than development then you should read up on the downsides of sharing a single certificate amongst multiple clients.
+Deploy [Luminary](https://github.com/wheelybird/luminary) for self-service enrolment.
 
-## Git repository
+### Restrict VPN access by LDAP group
+```bash
+-e "LDAP_FILTER=(memberOf=cn=vpn-users,ou=groups,dc=example,dc=com)"
+```
 
-The Dockerfile and associated assets are available at https://github.com/wheelybird/openvpn-server-ldap-otp
+### Enable Fail2ban
+```bash
+-e "FAIL2BAN_ENABLED=true"
+-e "FAIL2BAN_MAXRETRIES=3"
+```
 
-## Fail2ban administration
+### Session timeouts
+```bash
+-e "OVPN_IDLE_TIMEOUT=3600"  # 1 hour
+```
 
-You can ban or un-ban IP addresses using the `fail2ban-client` command within the running container. For example, running `docker exec -ti openvpn fail2ban-client set openvpn <banip|unbanip> <IPV4 Address>`. You can view the ban logs by running `docker exec -ti openvpn tail -50 /var/log/fail2ban.log`.
+## Common tasks
 
-## Keepalive settings
+### View client configuration
+```bash
+docker exec -ti openvpn show-client-config
+```
 
-The OpenVPN server is configured to send a keepalive ping every ten seconds and to restart the client connection if no reply has been received after a minute.  If you set `OVPN_IDLE_TIMEOUT` then the server will kill the client connection after that many seconds, and the client will be configured to _exit_ instead of restart after a minute of failed pings.  For this reason your client can take up to a minute longer than the configured `OVPN_IDLE_TIMEOUT` timeout value before it exits.
+### Add file-based OTP user
+```bash
+docker exec -ti openvpn add-otp-user username
+```
 
-## LDAP authentication filters
+### Check container logs
+```bash
+docker logs -f openvpn
+```
 
-You can restrict who can log into the VPN via LDAP filters.  This container uses the `libpam-ldapd` and [nslcd](http://manpages.ubuntu.com/manpages/focal/man5/nslcd.conf.5.html) packages to authenticate against LDAP.  The value of `LDAP_FILTER` will be appended to the user lookup.  So if `LDAP_FILTER` is `memberOf=cn=staff,cn=groups,cn=accounts,dc=example,dc=org` then the filter that `nslcd` will generate is `(&(uid=username)(memberOf=cn=staff,cn=groups,cn=accounts,dc=example,dc=org))`.
-`nslcd` defaults to `(objectClass=posixAccount)`, which will therefore create a filter like `(&(uid=username)(objectClass=posixAccount))` if `LDAP_FILTER` is undefined.
+### Fail2ban administration
+```bash
+# Ban an IP
+docker exec -ti openvpn fail2ban-client set openvpn banip 192.168.1.100
+
+# Unban an IP
+docker exec -ti openvpn fail2ban-client set openvpn unbanip 192.168.1.100
+
+# View fail2ban logs
+docker exec -ti openvpn tail -50 /var/log/fail2ban.log
+```
+
+### Force certificate regeneration
+```bash
+docker run ... -e "REGENERATE_CERTS=true" ...
+```
+**Note:** After regenerating the certificates you'll need to provide users with the new client configuration.
+
+## Troubleshooting
+
+### Container hangs at "Generating DH parameters"
+
+**Cause:** Low system entropy (common on VMs).
+
+**Solution:**
+```bash
+# Install entropy daemon on Docker host
+apt-get install haveged
+systemctl enable haveged
+systemctl start haveged
+
+# Check available entropy (should be >1000)
+cat /proc/sys/kernel/random/entropy_avail
+```
+
+Alternatively, wait longer (can take 30+ minutes on low-entropy systems) or use a lower key length (not recommended for production):
+```bash
+-e "KEY_LENGTH=2048"
+```
+
+### LDAP authentication fails
+
+**Check LDAP connectivity:**
+```bash
+docker exec -ti openvpn ldapsearch -x -H "${LDAP_URI}" -b "${LDAP_BASE_DN}" -D "${LDAP_BIND_USER_DN}" -w "${LDAP_BIND_USER_PASS}"
+```
+
+**Common issues:**
+- Bind user lacks search permissions
+- LDAP filter too restrictive
+- TLS certificate validation failing (try `LDAP_TLS_VALIDATE_CERT=false` temporarily)
+- Wrong base DN or bind credentials
+
+### MFA/OTP not working
+
+**File-based TOTP:**
+- Check OTP file exists: `docker exec -ti openvpn ls /etc/openvpn/otp/`
+- Ensure time synchronization with NTP
+
+**LDAP-backed TOTP:**
+- Verify LDAP schema installed: [ldap-totp-schema](https://github.com/wheelybird/ldap-totp-schema)
+- Check user has `totpSecret` attribute populated
+- Verify PAM module config: `docker exec -ti openvpn cat /etc/security/pam_ldap_totp_auth.conf`
+- Enable debug: `-e "DEBUG=true"`
+
+**Time synchronisation critical for TOTP:**
+```bash
+# Check time on the host
+date
+```
+
+Install NTP/chrony on the host.
+
+### Clients can't reach internal networks
+
+**Issue:** VPN connects but can't access internal resources.
+
+**Solutions:**
+
+1. **Enable NAT** (easiest):
+   ```bash
+   -e "OVPN_NAT=true"
+   ```
+
+2. **Add return routes** on internal gateways pointing the VPN network (e.g. `10.50.50.0/24`) to the OpenVPN server IP
+
+3. **Check routing**:
+   ```bash
+   docker exec -ti openvpn ip route
+   docker exec -ti openvpn iptables -t nat -L -n -v
+   ```
+
+## Documentation
+
+- **[LDAP TOTP Schema](https://github.com/wheelybird/ldap-totp-schema)** - Schema installation guide
+- **[Luminary](https://github.com/wheelybird/luminary)** - The Luminary LDAP account manager with self-service password/MFA support
+- **[LDAP TOTP PAM Module](https://github.com/wheelybird/pam-ldap-totp-auth)** - PAM module documentation
+
+## Support
+
+- **Issues:** https://github.com/wheelybird/openvpn-server-ldap-otp/issues
+- **Pull Requests:** Welcome!
+
+## Licence
+
+See LICENCE file for details.
+
+## Credits
+
+Built on top of:
+- [OpenVPN](https://openvpn.net/)
+- [OATH toolkit](https://www.nongnu.org/oath-toolkit/) - TOTP validation
+- [OpenLDAP libraries](https://www.openldap.org/) - LDAP connectivity
+- [Easy-RSA](https://github.com/OpenVPN/easy-rsa/) - Certificate management
+
+Custom components:
+| Component | Purpose | Repository |
+| [LDAP TOTP schema](https://github.com/wheelybird/ldap-totp-schema) - An LDAP schema that allows the storage of MFA/TOTP keys and metadata in LDAP
+- [LDAP TOTP PAM module](https://github.com/wheelybird/pam-ldap-totp-auth) - A Linux Pluggable-Authentication-Module that authenticates LDAP accounts and can authenticate One-Time-Passwords when LDAP uses the LDAP TOTP schema
+
+Part of the wheelybird LDAP MFA suite.

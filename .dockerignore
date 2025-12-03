@@ -1,0 +1,31 @@
+web_auth_server/certs/
+
+# Exclude development docker compose environment
+docker/
+
+# Exclude other non-essential development directories
+ldap-user-manager/
+otp-in-ldap-schemas/
+claude-progress/
+.git/
+
+# Exclude deprecated PAM module files
+ldap-totp-pam/deprecated/
+ldap-totp-pam/tests/deprecated/
+
+# Exclude PAM module build artefacts
+ldap-totp-pam/obj/
+ldap-totp-pam/obj_phase2/
+ldap-totp-pam/*.so
+ldap-totp-pam/*.o
+ldap-totp-pam/tests/obj/
+
+# Exclude compiled test executables (but keep .c source files)
+ldap-totp-pam/tests/test_config
+ldap-totp-pam/tests/test_ldap_auth
+ldap-totp-pam/tests/test_totp
+ldap-totp-pam/tests/test_security
+
+# Exclude git and docs from PAM module
+ldap-totp-pam/.git/
+ldap-totp-pam/*.md

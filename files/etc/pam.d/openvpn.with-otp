@@ -1,6 +1,8 @@
 #%PAM-1.0
 
+# File-based TOTP mode: google-authenticator + LDAP password authentication
+# Uses standalone module with TOTP disabled for LDAP authentication only
 auth required pam_google_authenticator.so secret=/etc/openvpn/otp/${USER}.google_authenticator user=root forward_pass
-auth required pam_ldap.so use_first_pass
+auth required pam_ldap_totp_auth.so use_first_pass
 
 account sufficient pam_permit.so

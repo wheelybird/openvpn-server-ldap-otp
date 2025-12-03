@@ -4,7 +4,7 @@ echo "openvpn: creating server config"
 
 echo "# OpenVPN server configuration" > $CONFIG_FILE
 
-if [ "${OVPN_DEFAULT_SERVER}" == "true" ]; then
+if [ "${OVPN_DEFAULT_SERVER,,}" == "true" ]; then
  echo "server $OVPN_NETWORK" >> $CONFIG_FILE
 fi
 
@@ -63,18 +63,27 @@ fi
 
 cat <<Part02 >>$CONFIG_FILE
 
+# Network topology
+topology subnet
+
 # As we're using LDAP, each client can use the same certificate
 duplicate-cn
 
+# Modern cipher configuration for OpenVPN 2.5+
+data-ciphers AES-256-GCM:AES-128-GCM:CHACHA20-POLY1305:AES-256-CBC
+cipher AES-256-GCM
+
 tls-server
-tls-auth $PKI_DIR/ta.key 0 
+tls-auth $PKI_DIR/ta.key 0
 tls-cipher $OVPN_TLS_CIPHERS
 tls-ciphersuites $OVPN_TLS_CIPHERSUITES
 auth SHA512
 
+# Security: drop privileges after startup
 user nobody
 group nogroup
 
+# Persist keys and tun device to prevent restart failures
 persist-key
 persist-tun
 
@@ -87,19 +96,18 @@ reneg-sec 0
 
 Part02
 
-if [ "${USE_CLIENT_CERTIFICATE}" != "true" ] ; then
-
-cat <<Part03 >>$CONFIG_FILE
+if [ "${USE_CLIENT_CERTIFICATE,,}" != "true" ] ; then
+  # Use PAM plugin for authentication
+  cat <<Part03 >>$CONFIG_FILE
 plugin $(dpkg-query -L openvpn | grep openvpn-plugin-auth-pam.so | head -n1) openvpn
 verify-client-cert optional
 username-as-common-name
 
 Part03
-
 fi
 
-if [ "${OVPN_MANAGEMENT_ENABLE}" == "true" ]; then
- if [ "${OVPN_MANAGEMENT_NOAUTH}" == "true" ]; then
+if [ "${OVPN_MANAGEMENT_ENABLE,,}" == "true" ]; then
+ if [ "${OVPN_MANAGEMENT_NOAUTH,,}" == "true" ]; then
   if [ "${OVPN_MANAGEMENT_PASSWORD}x" != "x" ]; then
    echo "openvpn: warning: management password is set, but authentication is disabled"
   fi

@@ -1,0 +1,62 @@
+FROM ubuntu:24.04
+
+LABEL org.opencontainers.image.authors="wheelybird@wheelybird.com"
+
+RUN apt-get update && apt-get install -y --no-install-recommends wget ca-certificates gnupg curl && \
+    DEBIAN_FRONTEND=noninteractive \
+    apt-get install -y --no-install-recommends \
+            easy-rsa \
+            fail2ban \
+            ipcalc \
+            iptables \
+            ldap-utils \
+            libpam-google-authenticator \
+            liboath0 \
+            net-tools \
+            openssl \
+            openvpn \
+            pamtester && \
+    apt-get autoremove && \
+    rm -rf /var/lib/apt/lists/* && \
+    mkdir /opt/easyrsa && \
+    cp -rp /usr/share/easy-rsa/x509-types /opt/easyrsa/ && \
+    cp -rp /usr/share/easy-rsa/easyrsa /opt/easyrsa/
+
+# Build and install standalone LDAP+TOTP PAM module from LOCAL source (for testing)
+RUN apt-get update && \
+    DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+        build-essential \
+        gcc \
+        make \
+        libpam0g-dev \
+        libldap2-dev \
+        liboath-dev && \
+    apt-get autoremove -y && \
+    rm -rf /var/lib/apt/lists/*
+
+# Copy local PAM module source and build
+# Build context is parent directory, so pam-ldap-totp-auth
+COPY pam-ldap-totp-auth /tmp/pam-ldap-totp-auth
+RUN cd /tmp/pam-ldap-totp-auth && \
+    make clean && \
+    make && \
+    install -D -m 0644 pam_ldap_totp_auth.so /lib/security/pam_ldap_totp_auth.so && \
+    cd / && \
+    rm -rf /tmp/pam-ldap-totp-auth && \
+    apt-get purge -y build-essential gcc make libpam0g-dev libldap2-dev liboath-dev && \
+    apt-get autoremove -y && \
+    rm -rf /var/lib/apt/lists/*
+
+EXPOSE 1194/udp
+EXPOSE 5555/tcp
+
+ADD openvpn-server-ldap-otp/files/bin /usr/local/bin
+RUN chmod a+x /usr/local/bin/*
+ADD openvpn-server-ldap-otp/files/configuration /opt/configuration
+ADD openvpn-server-ldap-otp/files/etc/pam.d/openvpn* /opt/pam.d/
+ADD openvpn-server-ldap-otp/files/etc/security/pam_ldap_totp_auth.conf /etc/security/pam_ldap_totp_auth.conf
+ADD openvpn-server-ldap-otp/files/easyrsa/* /opt/easyrsa/
+
+VOLUME /etc/openvpn
+
+CMD ["/usr/local/bin/entrypoint"]
