@@ -1,5 +1,11 @@
 # Changelog
 
+## [2.0.1] - 2025-12-05
+
+### Fixed
+
+- Removed unnecessary certificate permission changes that caused errors when upgrading from v1.8 with existing `/etc/openvpn` volumes (issue #88)
+
 ## [2.0.0] - 2025-11-29
 
 ### Added
