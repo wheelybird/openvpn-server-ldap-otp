@@ -193,14 +193,16 @@ The `MFA_ENFORCEMENT_MODE` variable (default: `graceful`) controls how users **w
 
 ### Restricting access by group
 
-Use `LDAP_FILTER` to control which LDAP users can authenticate:
+**Note:** `LDAP_FILTER` support is not yet implemented in v2.x. The PAM module currently searches for users with `(uid=username)` only.
 
-```bash
-# Only allow vpn-users group
--e "LDAP_FILTER=(memberOf=cn=vpn-users,ou=groups,dc=example,dc=com)"
-```
+**Workarounds for restricting VPN access:**
 
-**Note:** When MFA is enabled, it applies to all users who pass the LDAP filter. To require MFA for some users but not others, deploy separate OpenVPN instances with different MFA settings and LDAP filters.
+1. **LDAP ACLs:** Configure access control lists in your LDAP server to restrict which service accounts can read user entries
+2. **Separate OUs:** Place VPN users in a specific organisational unit and set `LDAP_BASE_DN` to that OU
+3. **External authorisation:** Use OpenVPN's `--auth-user-pass-verify` script for additional checks
+4. **Future:** Full `LDAP_FILTER` support is planned (see [issue #90](https://github.com/wheelybird/openvpn-server-ldap-otp/issues/90))
+
+**Note:** When MFA is enabled, it applies to all users in the LDAP base DN who can authenticate. To require MFA for some users but not others, deploy separate OpenVPN instances with different MFA settings and base DNs.
 
 ## Configuration
 
@@ -218,7 +220,6 @@ Use `LDAP_FILTER` to control which LDAP users can authenticate:
 | `LDAP_BASE_DN` | Yes* | Base DN for user searches | `dc=example,dc=com` |
 | `LDAP_BIND_USER_DN` | Recommended | DN for bind user (if anonymous bind disabled) | `cn=readonly,dc=example,dc=com` |
 | `LDAP_BIND_USER_PASS` | Recommended | Password for bind user | `supersecret` |
-| `LDAP_FILTER` | No | Additional LDAP filter | `(memberOf=cn=vpn-users,ou=groups,dc=example,dc=com)` |
 | `LDAP_LOGIN_ATTRIBUTE` | No | Attribute to match username (default: `uid`) | `sAMAccountName` for AD |
 | `LDAP_ENCRYPT_CONNECTION` | No | TLS mode: `on`, `starttls`, or `off` | `starttls` |
 | `LDAP_TLS_VALIDATE_CERT` | No | Validate TLS certificate (default: `true`) | `false` for self-signed |
@@ -332,10 +333,13 @@ Mount `/etc/openvpn` as a volume to persist:
 
 Deploy [Luminary](https://github.com/wheelybird/luminary) for self-service enrolment.
 
-### Restrict VPN access by LDAP group
+### Restrict VPN access by base DN
 ```bash
--e "LDAP_FILTER=(memberOf=cn=vpn-users,ou=groups,dc=example,dc=com)"
+# Place VPN users in a specific OU
+-e "LDAP_BASE_DN=ou=vpn-users,dc=example,dc=com"
 ```
+
+**Note:** Full LDAP filter support (e.g., memberOf checks) is not yet implemented. See "Restricting access by group" section for workarounds.
 
 ### Enable Fail2ban
 ```bash
@@ -414,9 +418,10 @@ docker exec -ti openvpn ldapsearch -x -H "${LDAP_URI}" -b "${LDAP_BASE_DN}" -D "
 
 **Common issues:**
 - Bind user lacks search permissions
-- LDAP filter too restrictive
+- Base DN doesn't include the user
 - TLS certificate validation failing (try `LDAP_TLS_VALIDATE_CERT=false` temporarily)
 - Wrong base DN or bind credentials
+- Wrong `LDAP_LOGIN_ATTRIBUTE` (use `sAMAccountName` for Active Directory)
 
 ### MFA/OTP not working
 
