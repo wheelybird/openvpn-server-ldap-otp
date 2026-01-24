@@ -3,24 +3,27 @@
 # =============================================================================
 FROM ubuntu:24.04 AS builder
 
-ARG PAM_MODULE_VERSION=0.1.3
+ARG PAM_MODULE_VERSION=0.2.0
 
 RUN apt-get update && \
     DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
-        wget \
-        ca-certificates \
         build-essential \
         gcc \
         make \
+        wget \
+        ca-certificates \
         libpam0g-dev \
         libldap2-dev \
         liboath-dev && \
     rm -rf /var/lib/apt/lists/*
 
+# Download and extract PAM module source from GitHub release
 RUN wget -O /tmp/pam-ldap-totp-auth.tar.gz \
-        "https://github.com/wheelybird/pam-ldap-totp-auth/archive/refs/tags/v${PAM_MODULE_VERSION}.tar.gz" && \
+        https://github.com/wheelybird/pam-ldap-totp-auth/archive/refs/tags/v${PAM_MODULE_VERSION}.tar.gz && \
     tar -xzf /tmp/pam-ldap-totp-auth.tar.gz -C /tmp && \
-    cd /tmp/pam-ldap-totp-auth-${PAM_MODULE_VERSION} && \
+    mv /tmp/pam-ldap-totp-auth-${PAM_MODULE_VERSION} /tmp/pam-ldap-totp-auth
+
+RUN cd /tmp/pam-ldap-totp-auth && \
     make clean && \
     make && \
     install -D -m 0644 pam_ldap_totp_auth.so /build/pam_ldap_totp_auth.so

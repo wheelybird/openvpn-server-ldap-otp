@@ -26,6 +26,12 @@ configure_ldap_settings() {
     sed -i "s|^login_attribute .*|login_attribute $LDAP_LOGIN_ATTRIBUTE|" /etc/security/pam_ldap_totp_auth.conf
   fi
 
+  # Configure LDAP filter for group-based access control (v0.2.0+)
+  if [ -n "$LDAP_FILTER" ]; then
+    sed -i "s|^ldap_filter.*|ldap_filter $LDAP_FILTER|" /etc/security/pam_ldap_totp_auth.conf
+    echo "pam_ldap_totp_auth: LDAP filter enabled: $LDAP_FILTER"
+  fi
+
   # Configure TLS settings
   if [ "$LDAP_ENCRYPT_CONNECTION" == "starttls" ]; then
     sed -i "s|^tls_mode .*|tls_mode starttls|" /etc/security/pam_ldap_totp_auth.conf
