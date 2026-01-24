@@ -1,5 +1,30 @@
 # Changelog
 
+## [2.1.0] - 2025-01-24
+
+### Added
+
+- **LDAP Filter Support**: New `LDAP_FILTER` environment variable for group-based and attribute-based access control
+  - Restrict VPN access to specific LDAP groups using memberOf filters
+  - Support for complex filters (OR, AND, NOT combinations)
+  - Requires pam-ldap-totp-auth v0.2.0+
+  - Fully backward compatible (empty filter = no restrictions)
+
+### Changed
+
+- Updated to pam-ldap-totp-auth v0.2.0
+- Updated documentation with LDAP_FILTER examples and usage
+
+### Example
+
+```bash
+# Restrict to vpn-users group
+-e "LDAP_FILTER=(memberOf=cn=vpn-users,ou=groups,dc=example,dc=com)"
+
+# Allow multiple groups
+-e "LDAP_FILTER=(|(memberOf=cn=vpn-users,ou=groups,dc=example,dc=com)(memberOf=cn=admins,ou=groups,dc=example,dc=com))"
+```
+
 ## [2.0.1] - 2025-12-05
 
 ### Fixed
