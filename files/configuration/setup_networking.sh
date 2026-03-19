@@ -1,5 +1,8 @@
 #Create the VPN tunnel interface
 
+echo "set iptables -> legacy"
+update-alternatives --set iptables /usr/sbin/iptables-legacy
+
 mkdir -p /dev/net
 if [ ! -c /dev/net/tun ]; then
   mknod /dev/net/tun c 10 200
