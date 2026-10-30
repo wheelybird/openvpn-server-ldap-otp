@@ -9,7 +9,7 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Run configuration tests
         run: for t in tests/test_*.sh; do echo "== $t"; bash "$t" || exit 1; done
