@@ -242,7 +242,7 @@ docker run \
 | `LDAP_BASE_DN` | Yes* | Base DN for user searches | `dc=example,dc=com` |
 | `LDAP_BIND_USER_DN` | Recommended | DN for bind user (if anonymous bind disabled) | `cn=readonly,dc=example,dc=com` |
 | `LDAP_BIND_USER_PASS` | Recommended | Password for bind user | `supersecret` |
-| `LDAP_LOGIN_ATTRIBUTE` | No | Attribute to match username (default: `uid`) | `sAMAccountName` for AD |
+| `LDAP_LOGIN_ATTRIBUTE` | No | Attribute to match username (default: `uid`). Comma-separate several to accept any of them; a login matching more than one entry is then rejected | `sAMAccountName` for AD, `uid,mail` |
 | `LDAP_FILTER` | No | Additional LDAP filter for access control | `(memberOf=cn=vpn-users,ou=groups,dc=example,dc=com)` |
 | `LDAP_ENCRYPT_CONNECTION` | No | TLS mode: `on`, `starttls`, or `off` | `starttls` |
 | `LDAP_TLS_VALIDATE_CERT` | No | Validate TLS certificate (default: `true`) | `false` for self-signed |

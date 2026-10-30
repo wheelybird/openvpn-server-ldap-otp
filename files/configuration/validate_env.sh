@@ -244,10 +244,10 @@ validate_ldap_uri "LDAP_URI" "$LDAP_URI"
 validate_dn "LDAP_BASE_DN" "$LDAP_BASE_DN"
 validate_dn "LDAP_BIND_USER_DN" "$LDAP_BIND_USER_DN"
 
-# Validate LDAP login attribute (should be alphanumeric)
+# Validate LDAP login attribute(s): one or more alphanumeric names, comma-separated
 if [ -n "$LDAP_LOGIN_ATTRIBUTE" ]; then
-  if ! [[ "$LDAP_LOGIN_ATTRIBUTE" =~ ^[a-zA-Z][a-zA-Z0-9]*$ ]]; then
-    error "LDAP_LOGIN_ATTRIBUTE must be alphanumeric starting with a letter, got '$LDAP_LOGIN_ATTRIBUTE'"
+  if ! [[ "$LDAP_LOGIN_ATTRIBUTE" =~ ^[a-zA-Z][a-zA-Z0-9]*(,[a-zA-Z][a-zA-Z0-9]*)*$ ]]; then
+    error "LDAP_LOGIN_ATTRIBUTE must be one or more alphanumeric attribute names starting with a letter, separated by commas (e.g. uid,mail), got '$LDAP_LOGIN_ATTRIBUTE'"
   fi
 fi
 

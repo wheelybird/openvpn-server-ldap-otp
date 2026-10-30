@@ -1,5 +1,15 @@
 # Changelog
 
+## [Unreleased]
+
+### Added
+
+- `LDAP_LOGIN_ATTRIBUTE` accepts a comma-separated list, so users can log in with any of several attributes, e.g. `LDAP_LOGIN_ATTRIBUTE=uid,mail` to accept a username or an e-mail address ([pam-ldap-totp-auth#4](https://github.com/wheelybird/pam-ldap-totp-auth/issues/4)). A login that matches more than one entry is rejected when several attributes are listed.
+
+### Changed
+
+- Updated to pam-ldap-totp-auth v0.3.0
+
 ## [2.1.1] - 2026-10-30
 
 ### Fixed
