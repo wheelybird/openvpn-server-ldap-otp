@@ -1,5 +1,16 @@
 # Changelog
 
+## [Unreleased]
+
+### Fixed
+
+- **[#94](https://github.com/wheelybird/openvpn-server-ldap-otp/issues/94)** - Configuration values containing `&` or `|` are no longer mangled when written to the PAM module's config. `setup_otp.sh` used `sed` substitutions, so an AND filter in `LDAP_FILTER` had the matched text inserted in place of `&` and an OR filter broke the `sed` command outright, failing every login. Every value `setup_otp.sh` writes to that file is now written literally, not only `LDAP_FILTER`.
+- E-mail addresses can be used as usernames with `LDAP_LOGIN_ATTRIBUTE=mail` again, as they could in v1.8 ([pam-ldap-totp-auth#2](https://github.com/wheelybird/pam-ldap-totp-auth/issues/2)).
+
+### Changed
+
+- Updated to pam-ldap-totp-auth v0.2.1
+
 ## [2.1.0] - 2025-01-24
 
 ### Added
