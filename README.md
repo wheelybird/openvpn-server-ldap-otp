@@ -48,7 +48,7 @@ docker run \
   -e "LDAP_BIND_USER_DN=cn=pam-totp-ldap-auth,ou=services,dc=example,dc=com" \
   -e "LDAP_BIND_USER_PASS=password" \
   -d \
-  wheelybird/openvpn-ldap-otp:v2.1.1
+  wheelybird/openvpn-ldap-otp:v2.2.0
 ```
 
 **NOTE:** LDAP_BIND_USER should be the DN for an LDAP account that can access the user's LDAP attributes.  If you don't have a specific service account set up for this then you can use the administrator base DN, but this isn't recommended.  The example uses the example service account from the [LDAP TOTP schema](https://github.com/wheelybird/ldap-totp-schema) repository. 
@@ -72,7 +72,7 @@ docker run \
   -e "MFA_ENABLED=true" \
   -e "MFA_BACKEND=ldap" \
   -d \
-  wheelybird/openvpn-ldap-otp:v2.1.1
+  wheelybird/openvpn-ldap-otp:v2.2.0
 ```
 
 **Note:** The `LDAP_FILTER` restricts VPN access to members of the vpn-users group. Omit this variable to allow all users in the base DN.
@@ -203,7 +203,7 @@ Use the `LDAP_FILTER` environment variable to restrict VPN access based on group
 docker run \
   ... other options ... \
   -e "LDAP_FILTER=(memberOf=cn=vpn-users,ou=groups,dc=example,dc=com)" \
-  wheelybird/openvpn-ldap-otp:v2.1.1
+  wheelybird/openvpn-ldap-otp:v2.2.0
 ```
 
 **How it works:**
