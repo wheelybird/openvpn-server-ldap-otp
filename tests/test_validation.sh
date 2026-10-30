@@ -172,6 +172,28 @@ export LDAP_BASE_DN="dc=example,dc=com"
 export MFA_TOTP_ATTRIBUTE="totpSecret\`whoami\`"
 test_validation "Command injection in attribute name" "fail"
 
+export OVPN_SERVER_CN="vpn.example.com"
+export LDAP_URI="ldap://ldap.example.com"
+export LDAP_BASE_DN="dc=example,dc=com"
+export LDAP_LOGIN_ATTRIBUTE="uid,(cn=*)"
+test_validation "Filter injection in login attribute list" "fail"
+
+# ============================================================================
+# Login attributes
+# ============================================================================
+
+export OVPN_SERVER_CN="vpn.example.com"
+export LDAP_URI="ldap://ldap.example.com"
+export LDAP_BASE_DN="dc=example,dc=com"
+export LDAP_LOGIN_ATTRIBUTE="uid,mail"
+test_validation "Multiple login attributes" "pass"
+
+export OVPN_SERVER_CN="vpn.example.com"
+export LDAP_URI="ldap://ldap.example.com"
+export LDAP_BASE_DN="dc=example,dc=com"
+export LDAP_LOGIN_ATTRIBUTE="uid,"
+test_validation "Trailing comma in login attributes" "fail"
+
 # ============================================================================
 # Missing required variables
 # ============================================================================
