@@ -24,11 +24,8 @@ test_validation() {
 
   echo -e "\n${YELLOW}TEST: $test_name${NC}"
 
-  # Source set_defaults to get default values
-  source "$SET_DEFAULTS_SCRIPT" 2>/dev/null
-
-  # Run validation
-  output=$("$VALIDATION_SCRIPT" 2>&1)
+  # Both scripts are sourced by the entrypoint and may exit, so run them in a subshell
+  output=$( (source "$SET_DEFAULTS_SCRIPT" >/dev/null && source "$VALIDATION_SCRIPT") 2>&1)
   exit_code=$?
 
   if [ "$should_fail" == "fail" ]; then
