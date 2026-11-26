@@ -1,5 +1,16 @@
 # Changelog
 
+## [Unreleased]
+
+### Security
+
+- Updated to pam-ldap-totp-auth v0.4.0, which fixes [pam-ldap-totp-auth#8](https://github.com/wheelybird/pam-ldap-totp-auth/issues/8). With `MFA_ENFORCEMENT_MODE=graceful` (the default), users without a TOTP secret could connect with their password alone indefinitely unless their `totpStatus` was `pending`. Now only pending users within their grace period can connect without a code.
+
+### Changed
+
+- `MFA_ENFORCEMENT_MODE=strict` no longer honours grace periods. **If you set `strict` as a workaround for the above, switch back to `graceful` (or unset it) when upgrading.**
+- Corrected the enforcement mode descriptions in the README and the bundled PAM config.
+
 ## [2.2.0] - 2026-10-30
 
 ### Added

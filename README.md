@@ -188,11 +188,13 @@ The `MFA_ENFORCEMENT_MODE` variable (default: `graceful`) controls how users **w
 
 | Mode | Behaviour | Use case |
 |------|-----------|----------|
-| `strict` | Users without TOTP secrets **cannot** authenticate | Production - require MFA for all users |
-| `graceful` | Users without secrets can authenticate during grace period | Migration - give users time to enrol |
+| `graceful` | Only users with `totpStatus=pending` can authenticate without a code, and only within their grace period. Everyone else without a secret is denied. | Default - give new users time to enrol |
+| `strict` | Users without TOTP secrets **cannot** authenticate, including pending users | Every user is already enrolled |
 | `warn_only` | Users without secrets can authenticate (warning logged) | Testing - MFA optional |
 
-**Grace period:** With `MFA_ENFORCEMENT_MODE=graceful` (the default), users have `MFA_GRACE_PERIOD_DAYS` (default: 7) from account creation to enrol in MFA before authentication is denied.
+**Grace period:** With `MFA_ENFORCEMENT_MODE=graceful` (the default), a user's grace period starts from their `totpEnrolledDate` when their `totpStatus` is `pending`, and lasts `MFA_GRACE_PERIOD_DAYS` (default: 7). Luminary sets this when a user is created in, or added to, a group that requires MFA, or when a group is marked MFA-required. Users who aren't pending get no grace period.
+
+Before 2.3.0 (pam-ldap-totp-auth 0.4.0), `graceful` let any user who wasn't pending connect with their password alone ([pam-ldap-totp-auth#8](https://github.com/wheelybird/pam-ldap-totp-auth/issues/8)).
 
 ### Restricting access by group
 
